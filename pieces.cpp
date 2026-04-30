@@ -3,18 +3,13 @@
 #include <string>
 #include <cstring>
 
-pieces::pieces(color c, type_of_pieces p, int rows, int cols, int num) {
+pieces::pieces(color c, type_of_pieces p, int rows, int cols, int num):cordinates(rows, cols) {
 	type_colors = c;
 	type_piece = p;
-	row = rows;
-	col = cols;
 	piece_number = num;
 }
-int pieces::get_col()const {
-	return col;
-}
-int pieces::get_row()const {
-	return row;
+Cord pieces::get_cordinates()const {
+	return cordinates;;
 }
 int pieces::get_piece_number() const {
 	return piece_number;
