@@ -1,28 +1,32 @@
 #include "pieces.h"
-#include <cmath>
-#include <string>
-#include <cstring>
 
-pieces::pieces(color c, type_of_pieces p, int rows, int cols, int num):cordinates(rows, cols) {
-	type_colors = c;
-	type_piece = p;
-	piece_number = num;
+Piece::Piece(color c, int row, int col) : pieceColor(c), position{ row, col } {}
+
+color Piece::getColor() const{
+    return pieceColor;
 }
-Cord pieces::get_cordinates()const {
-	return cordinates;;
+
+Cord Piece::getPosition() const{
+    return position;
 }
-int pieces::get_piece_number() const {
-	return piece_number;
+
+void Piece::setPosition(int row, int col){
+    position.row = row;
+    position.col = col;
 }
-color pieces::get_color() const {
-	return type_colors;
-}
-type_of_pieces pieces::get_type_piece() const {
-	return type_piece;
-}
-pawn::pawn(color c, int row, int col, int num) :pieces(c, type_of_pieces::pawn, row, col, num){};
-king::king(color c, int row, int col, int num) :pieces(c, type_of_pieces::king, row, col, num) {};
-rook::rook(color c, int row, int col, int num) :pieces(c, type_of_pieces::rook, row, col, num) {};
-bishop::bishop(color c, int row, int col, int num) :pieces(c, type_of_pieces::bishop, row, col, num) {};
-queen::queen(color c, int row, int col, int num) :pieces(c, type_of_pieces::queen, row, col, num) {};
-knight::knight(color c, int row, int col, int num) :pieces(c, type_of_pieces::knight, row, col, num) {};
+
+
+int Rook::getTypeId() const { return 0; }
+int Knight::getTypeId() const { return 1; }
+int Bishop::getTypeId() const { return 2; }
+int Queen::getTypeId() const { return 3; }
+int King::getTypeId() const { return 4; }
+int Pawn::getTypeId() const { return 5; }
+
+
+Pawn::Pawn(color c, int r, int col) : Piece(c, r, col) {}
+Rook::Rook(color c, int r, int col) : Piece(c, r, col) {}
+Knight::Knight(color c, int r, int col) : Piece(c, r, col) {}
+Bishop::Bishop(color c, int r, int col) : Piece(c, r, col) {}
+Queen::Queen(color c, int r, int col) : Piece(c, r, col) {}
+King::King(color c, int r, int col) : Piece(c, r, col) {}
