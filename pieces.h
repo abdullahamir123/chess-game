@@ -1,58 +1,63 @@
 #pragma once
-#include <iostream>
-#include <string>
 
-using namespace std;
-
-enum class color{white,black};
-enum class type_of_pieces{queen,king,knight,bishop,pawn,rook};
-
+enum class color { white, black };
 
 struct Cord {
-	int row;
-	int col;
+    int row;
+    int col;
 };
 
 
-class pieces {
+class Piece {
 protected:
-	color  type_colors;
-	type_of_pieces type_piece;
-	Cord cordinates;
-	int piece_number;
+    color pieceColor;
+    Cord position;
+
 public:
-	pieces(color c, type_of_pieces p, int rows, int cols, int num);
-	 color get_color() const;
-	type_of_pieces get_type_piece() const;
-	Cord get_cordinates() const;
-	int get_piece_number() const;
-};
-class pawn:public pieces{
-public:
-	pawn(color c, int row, int col, int num);
+    Piece(color c, int row, int col);
+    virtual ~Piece() = default;
+
+    color getColor() const;
+    Cord getPosition() const;
+
+    void setPosition(int row, int col);
+
+    virtual int getTypeId() const = 0;
 };
 
-class rook :public pieces {
+
+class Pawn : public Piece {
 public:
-	rook(color c, int row, int col, int num);
+    Pawn(color c, int row, int col);
+    int getTypeId() const override;
 };
 
-class king :public pieces {
+class Rook : public Piece {
 public:
-	king(color c, int row, int col, int num);
+    Rook(color c, int row, int col);
+    int getTypeId() const override;
 };
 
-class queen :public pieces {
+class Knight : public Piece {
 public:
-	queen(color c, int row, int col, int num);
+    Knight(color c, int row, int col);
+    int getTypeId() const override;
 };
 
-class knight :public pieces {
+class Bishop : public Piece {
 public:
-	knight(color c, int row, int col, int num);
+    Bishop(color c, int row, int col);
+    int getTypeId() const override;
 };
 
-class bishop :public pieces {
+class Queen : public Piece {
 public:
-	bishop(color c, int row, int col, int num);
+    Queen(color c, int row, int col);
+    int getTypeId() const override;
+};
+
+class King : public Piece {
+public:
+    King(color c, int row, int col);
+    int getTypeId() const override;
 };
