@@ -1,5 +1,5 @@
-Chess.vcxproj
-Chess.vcxproj.filters
-Chess.vcxproj.user
+chess-game.vcxproj
+chess-game.vcxproj.filters
+chess-game.vcxproj.user
 x64/
 packages.config
