@@ -45,6 +45,7 @@ bool Pawn::validmove(int row, int col) {
         }
         return false;
     }
+    return false; //fixed
 }
 
 Rook::Rook(color c, int r, int col) : Piece(c, r, col) {}
