@@ -12,7 +12,7 @@ Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
 
 
-void Render::LoadTextures(){
+void Render::LoadTextures() {
     textures[0] = LoadTexture("assets/white-rook.png");
     textures[1] = LoadTexture("assets/white-knight.png");
     textures[2] = LoadTexture("assets/white-bishop.png");
@@ -29,8 +29,8 @@ void Render::LoadTextures(){
 }
 
 
-void Render::initBoard(){
-    for (int i = 0; i < 8; i++){
+void Render::initBoard() {
+    for (int i = 0; i < 8; i++) {
         board[1][i] = new Pawn(color::black, 1, i);
         board[6][i] = new Pawn(color::white, 6, i);
     }
@@ -54,19 +54,19 @@ void Render::initBoard(){
     board[7][7] = new Rook(color::white, 7, 7);
 }
 
-void Render::window(){
+void Render::window() {
     InitWindow(width, height, "chess game");
 
     LoadTextures();
     initBoard();
 
-    while (!WindowShouldClose()){
+    while (!WindowShouldClose()) {
         mouse();
 
         BeginDrawing();
-            mainGrid();
-            leftGrid();
-            rightGrid();
+        mainGrid();
+        leftGrid();
+        rightGrid();
         EndDrawing();
     }
 
@@ -78,14 +78,26 @@ void Render::mouse() {
 
     float offsetX = 250.0f;
 
+    if ((mouse.x - offsetX) / cellSize < 0.0){
+        return;
+    }
+
     int col = (mouse.x - offsetX) / cellSize;
     int row = mouse.y / cellSize;
 
-    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) 
+    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         return;
 
-    if (row < 0 || row >= 8 || col < 0 || col >= 8) 
+    if (row < 0 || row >= 8 || col < 0 || col >= 8)
         return;
+
+    // NEW: if already selected and clicking same square → unselect
+    if (selectedPiece != nullptr && selectedRow == row && selectedCol == col){
+        selectedPiece = nullptr;
+        selectedRow = -1;
+        selectedCol = -1;
+        return;
+    }
 
     if (selectedPiece == nullptr) {
         if (board[row][col] != nullptr) {
@@ -96,14 +108,18 @@ void Render::mouse() {
         return;
     }
 
-    board[selectedRow][selectedCol] = nullptr;
+    if (selectedPiece != nullptr) {
+        if (selectedPiece->validmove(row, col)) {
+            board[selectedRow][selectedCol] = nullptr;
 
-    selectedPiece->setPosition(row, col);
-    board[row][col] = selectedPiece;
+            selectedPiece->setPosition(row, col);
+            board[row][col] = selectedPiece;
 
-    selectedPiece = nullptr;
-    selectedRow = -1;
-    selectedCol = -1;
+            selectedPiece = nullptr;
+            selectedRow = -1;
+            selectedCol = -1;
+        }
+    }
 }
 
 void Render::mainGrid() {
