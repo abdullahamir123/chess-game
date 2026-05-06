@@ -1,4 +1,5 @@
 #include "pieces.h"
+#include"render.h"
 #include<iostream>
 
 Piece::Piece(color c, int row, int col) : pieceColor(c), position{ row, col } {}
@@ -14,7 +15,18 @@ Cord Piece::getPosition() const{
 void Piece::setPosition(int row, int col) {
     position.row = row;
     position.col = col;
+
 }
+bool Piece::noFriendlyCapture(int row, int col) {
+    if (Render::board[row][col] != nullptr) {
+        if (this->getColor() == Render::board[row][col]->getColor()) {
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
 
 int Rook::getTypeId() const { return 0; }
 int Knight::getTypeId() const { return 1; }
@@ -24,11 +36,124 @@ int King::getTypeId() const { return 4; }
 int Pawn::getTypeId() const { return 5; }
 
 
+bool Piece::isPathClear(int rowDiff, int colDiff) {
+    if (!rowDiff) {
+        if (colDiff < 0) {
+            for (int i = 1; i < std::abs(colDiff); i++) {
+                if (Render::board[position.row][position.col - i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+        else {
+            for (int i = 1; i < colDiff; i++) {
+                if (Render::board[position.row][position.col + i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    else if (!colDiff) {
+        if (rowDiff < 0) {
+            for (int i = 1; i < std::abs(rowDiff); i++) {
+                if (Render::board[position.row - i][position.col] != nullptr) {
+                    return false;
+                }
+            }
+        }
+        else {
+            for (int i = 1; i < rowDiff; i++) {
+                if (Render::board[position.row + i][position.col] != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    else {
+        if (rowDiff < 0 && colDiff < 0) {
+            for (int i = 1; i < std::abs(rowDiff); i++) {
+                if (Render::board[position.row - i][position.col - i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+        else if (rowDiff < 0 && colDiff > 0) {
+            for (int i = 1; i < std::abs(rowDiff); i++) {
+                if (Render::board[position.row - i][position.col + i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+        else if (rowDiff > 0 && colDiff > 0) {
+            for (int i = 1; i < std::abs(rowDiff); i++) {
+                if (Render::board[position.row + i][position.col - i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+        else if(rowDiff > 0 && colDiff < 0) {
+            for (int i = 1; i < std::abs(rowDiff); i++) {
+                if (Render::board[position.row + i][position.col + i] != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+
+bool Pawn::isPawnPathClear(int row) {
+
+    if (getColor() == color::black) {
+        if (Render::board[position.row+1][position.col] != nullptr) {
+            return false;
+        }
+        if (!hasMoved) {
+            if (std::abs(position.row - row) == 2) {
+                if (Render::board[position.row + 2][position.col] != nullptr) {
+                    return false;
+                }
+            }
+            else {
+                if (Render::board[position.row + 1][position.col] != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    if (getColor() == color::white) {
+        if (Render::board[position.row - 1][position.col] != nullptr) {
+            return false;
+        }
+        if (!hasMoved) {
+            if (std::abs(position.row - row) == 2) {
+                if (Render::board[position.row - 2][position.col] != nullptr) {
+                    return false;
+                }
+            }
+            else {
+                if (Render::board[position.row - 1][position.col] != nullptr) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+
 Pawn::Pawn(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
 bool Pawn::validmove(int row, int col) {
+    if (!isPawnPathClear(row)) { 
+        return false;
+    }
     if (col == position.col) {
         if (pieceColor == color::black) {
             if (!hasMoved) {
+                if (std::abs(row - position.row) > 2) {
+                    return false;
+                }
                 hasMoved = true;
                 return row == position.row + 1 || row == position.row + 2;
             }
@@ -37,7 +162,9 @@ bool Pawn::validmove(int row, int col) {
 
         if (pieceColor == color::white) {
             if (!hasMoved) {
-                //makes sure moving 2 pieces only possible on first turn of piece
+                if (std::abs(row - position.row) > 2) {
+                    return false;
+                }
                 hasMoved = true;
                 return row == position.row - 1 || row == position.row - 2;
             }
@@ -45,11 +172,14 @@ bool Pawn::validmove(int row, int col) {
         }
         return false;
     }
-    return false; //fixed
+    return false;
 }
 
 Rook::Rook(color c, int r, int col) : Piece(c, r, col) {}
 bool Rook::validmove(int row, int col) {
+    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+        return false;
+    }
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
 
@@ -74,6 +204,9 @@ bool Knight::validmove(int row, int col) {
 
 Bishop::Bishop(color c, int r, int col) : Piece(c, r, col) {}
 bool Bishop::validmove(int row, int col) {
+    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+        return false;
+    }
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
     if (rowDiff == colDiff) {
@@ -85,6 +218,9 @@ bool Bishop::validmove(int row, int col) {
 
 Queen::Queen(color c, int r, int col) : Piece(c, r, col) {}
 bool Queen::validmove(int row, int col) {
+    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+        return false;
+    }
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
 

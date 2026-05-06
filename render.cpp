@@ -12,6 +12,8 @@ Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
 
 
+//loads all assets to memory
+//for white variant, 0 to 5. for the black variant of same type, +6
 void Render::LoadTextures() {
     textures[0] = LoadTexture("assets/white-rook.png");
     textures[1] = LoadTexture("assets/white-knight.png");
@@ -29,6 +31,7 @@ void Render::LoadTextures() {
 }
 
 
+//initialize specific indices of the board[][] as piece type pointers. remaining will stay nullptr
 void Render::initBoard() {
     for (int i = 0; i < 8; i++) {
         board[1][i] = new Pawn(color::black, 1, i);
@@ -88,10 +91,11 @@ void Render::mouse() {
     if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         return;
 
+    //checks out of bound
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
         return;
 
-    // NEW: if already selected and clicking same square → unselect
+    //deselect an already selected piece by clicking on it again
     if (selectedPiece != nullptr && selectedRow == row && selectedCol == col){
         selectedPiece = nullptr;
         selectedRow = -1;
@@ -99,6 +103,7 @@ void Render::mouse() {
         return;
     }
 
+    //if no selection yet, and a new selection occurs, first check if new selection is not nullptr. if not then point selected piece towards it
     if (selectedPiece == nullptr) {
         if (board[row][col] != nullptr) {
             selectedPiece = board[row][col];
@@ -108,20 +113,28 @@ void Render::mouse() {
         return;
     }
 
+    //if a piece is already selected and another selection occurs(moving a piece)
     if (selectedPiece != nullptr) {
+        //first check if the move is valid moveset of the piece type
         if (selectedPiece->validmove(row, col)) {
-            board[selectedRow][selectedCol] = nullptr;
+            //check if not capturing it's own piece
+            if (selectedPiece->noFriendlyCapture(row, col)) {
+                board[selectedRow][selectedCol] = nullptr;
+                //move selectedpiece after deleting old piece from there
+                delete board[row][col];
+                selectedPiece->setPosition(row, col);
+                board[row][col] = selectedPiece;
 
-            selectedPiece->setPosition(row, col);
-            board[row][col] = selectedPiece;
-
-            selectedPiece = nullptr;
-            selectedRow = -1;
-            selectedCol = -1;
+                selectedPiece = nullptr;
+                selectedRow = -1;
+                selectedCol = -1;
+            }
         }
     }
 }
 
+
+//creates a main grid where each rectangle is seperately drawn, keeping their width and height same(cellsize)
 void Render::mainGrid() {
     float offsetX = 250.0f;
 
@@ -134,12 +147,14 @@ void Render::mainGrid() {
             Rectangle cell = { x, y, cellSize, cellSize };
 
             Color col = ((i + j) % 2) ? BROWN : DARKBROWN;
+
+            //selected rectangle becomes yellow
             if (i == selectedRow && j == selectedCol) {
                 col = YELLOW;
             }
             DrawRectangleRec(cell, col);
 
-
+            //draws the pieces
             Piece* p = board[i][j];
             if (p != nullptr) {
                 int base = (p->getColor() == color::white) ? 0 : 6;
