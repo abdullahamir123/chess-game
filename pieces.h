@@ -19,8 +19,10 @@ public:
 
     color getColor() const;
     Cord getPosition() const;
+    bool noFriendlyCapture(int row, int col);
 
     void setPosition(int row, int col);
+    bool isPathClear(int row, int col);
 
     virtual int getTypeId() const = 0;
     virtual bool validmove(int row, int col)  = 0;
@@ -33,6 +35,7 @@ public:
     Pawn(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col)  override;
+    bool isPawnPathClear(int row);
 };
 
 class Rook : public Piece {
