@@ -19,10 +19,10 @@ public:
 
     color getColor() const;
     Cord getPosition() const;
-    bool noFriendlyCapture(int row, int col);
 
     void setPosition(int row, int col);
-    bool isPathClear(int row, int col);
+    bool noFriendlyCapture(int row, int col) const;
+    bool isPathClear(int row, int col) const;
 
     virtual int getTypeId() const = 0;
     virtual bool validmove(int row, int col)  = 0;
