@@ -17,7 +17,7 @@ void Piece::setPosition(int row, int col) {
     position.col = col;
 
 }
-bool Piece::noFriendlyCapture(int row, int col) {
+bool Piece::noFriendlyCapture(int row, int col) const{
     if (Render::board[row][col] != nullptr) {
         if (this->getColor() == Render::board[row][col]->getColor()) {
             return false;
@@ -36,8 +36,8 @@ int King::getTypeId() const { return 4; }
 int Pawn::getTypeId() const { return 5; }
 
 
-bool Piece::isPathClear(int rowDiff, int colDiff) {
-    if (!rowDiff) {
+bool Piece::isPathClear(int rowDiff, int colDiff) const {
+    if (!rowDiff) { //check horizontal path
         if (colDiff < 0) {
             for (int i = 1; i < std::abs(colDiff); i++) {
                 if (Render::board[position.row][position.col - i] != nullptr) {
@@ -53,7 +53,7 @@ bool Piece::isPathClear(int rowDiff, int colDiff) {
             }
         }
     }
-    else if (!colDiff) {
+    else if (!colDiff) { //check vertical path
         if (rowDiff < 0) {
             for (int i = 1; i < std::abs(rowDiff); i++) {
                 if (Render::board[position.row - i][position.col] != nullptr) {
@@ -69,7 +69,7 @@ bool Piece::isPathClear(int rowDiff, int colDiff) {
             }
         }
     }
-    else {
+    else { //check diagonal paths
         if (rowDiff < 0 && colDiff < 0) {
             for (int i = 1; i < std::abs(rowDiff); i++) {
                 if (Render::board[position.row - i][position.col - i] != nullptr) {
@@ -86,14 +86,14 @@ bool Piece::isPathClear(int rowDiff, int colDiff) {
         }
         else if (rowDiff > 0 && colDiff > 0) {
             for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row + i][position.col - i] != nullptr) {
+                if (Render::board[position.row + i][position.col + i] != nullptr) {
                     return false;
                 }
             }
         }
         else if(rowDiff > 0 && colDiff < 0) {
             for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row + i][position.col + i] != nullptr) {
+                if (Render::board[position.row + i][position.col - i] != nullptr) {
                     return false;
                 }
             }

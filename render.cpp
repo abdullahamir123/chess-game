@@ -7,6 +7,7 @@ const float cellSize = (width - 500.0f) / 8.0f;
 int Render::selectedRow = -1;
 int Render::selectedCol = -1;
 Piece* Render::selectedPiece = nullptr;
+bool Render::whiteTurn = true;
 
 Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
@@ -106,9 +107,12 @@ void Render::mouse() {
     //if no selection yet, and a new selection occurs, first check if new selection is not nullptr. if not then point selected piece towards it
     if (selectedPiece == nullptr) {
         if (board[row][col] != nullptr) {
-            selectedPiece = board[row][col];
-            selectedRow = row;
-            selectedCol = col;
+            //check if the black or whites turn
+            if ((board[row][col]->getColor() == color::white && whiteTurn) || (board[row][col]->getColor() == color::black && !whiteTurn)) {
+                selectedPiece = board[row][col];
+                selectedRow = row;
+                selectedCol = col;
+            }
         }
         return;
     }
@@ -128,6 +132,8 @@ void Render::mouse() {
                 selectedPiece = nullptr;
                 selectedRow = -1;
                 selectedCol = -1;
+                //gives turn to the other side
+                whiteTurn = !whiteTurn;
             }
         }
     }

@@ -21,4 +21,5 @@ public:
     static int selectedRow;
     static int selectedCol;
     static Piece* selectedPiece;
+    static bool whiteTurn;
 };
