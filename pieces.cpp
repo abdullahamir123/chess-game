@@ -198,6 +198,33 @@ bool Pawn::validmove(int row, int col) {
                 return true;
             }
         }
+    if (!isPawnPathClear(row)) { 
+        return false;
+    }
+    if (col == position.col) {
+        if (pieceColor == color::black) {
+            if (!hasMoved) {
+                if (std::abs(row - position.row) > 2) {
+                    return false;
+                }
+                hasMoved = true;
+                return row == position.row + 1 || row == position.row + 2;
+            }
+            return row == position.row + 1;
+        }
+
+        if (pieceColor == color::white) {
+            if (!hasMoved) {
+                if (std::abs(row - position.row) > 2) {
+                    return false;
+                }
+                hasMoved = true;
+                return row == position.row - 1 || row == position.row - 2;
+            }
+            return row == position.row - 1;
+        }
+        return false;
+
     }
     return false;
 }
@@ -272,6 +299,7 @@ bool King::validmove(int row, int col) {
         return false;
     }
     return true;
+
 }
 
 // pawn attacking check
