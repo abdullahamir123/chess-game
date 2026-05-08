@@ -1,0 +1,6 @@
+chess-game.vcxproj
+chess-game.vcxproj.filters
+chess-game.vcxproj.user
+x64/
+packages.config
+*.vcxproj.user
