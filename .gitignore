@@ -4,3 +4,5 @@ chess-game.vcxproj.user
 x64/
 packages.config
 *.vcxproj.user
+*.vcxproj.user
+packages.config

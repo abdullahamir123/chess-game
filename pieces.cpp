@@ -323,3 +323,4 @@ bool Pawn::pawn_attack(int row, int col) const {
     }
     return false;
 }
+}
