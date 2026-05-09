@@ -307,20 +307,19 @@ bool King::validmove(int row, int col) {
 bool Pawn::pawn_attack(int row, int col) const {
     if (pieceColor == color::white) {
         if (row == position.row - 1) {
-            if (col == position.col - 1 ||
-                col == position.col + 1) {
+            if (col == position.col - 1 || col == position.col + 1) {
                 return true;
             }
         }
     }
     if (pieceColor == color::black) {
         if (row == position.row + 1) {
-            if (col == position.col - 1 ||
-                col == position.col + 1) {
+            if (col == position.col - 1 || col == position.col + 1) {
                 return true;
             }
         }
     }
     return false;
+
 }
-}
+

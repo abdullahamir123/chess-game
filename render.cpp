@@ -1,4 +1,5 @@
 #include "render.h"
+#include "check.h"
 
 const int width = 1600;
 const int height = 1100;
@@ -11,7 +12,10 @@ bool Render::whiteTurn = true;
 
 Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
-
+bool Render::white_check = false;
+bool Render::black_check = false;
+bool Render::white_checkmate = false;
+bool Render::black_checkmate = false;
 
 //loads all assets to memory
 //for white variant, 0 to 5. for the black variant of same type, +6
@@ -122,6 +126,9 @@ void Render::mouse() {
         if (selectedPiece->validmove(row, col)) {
             //check if not capturing it's own piece
             if (selectedPiece->noFriendlyCapture(row, col)) {
+                if (move_making_king_check(selectedPiece, row, col)) {
+                    return;
+                }
                 board[selectedRow][selectedCol] = nullptr;
                 //move selectedpiece after deleting old piece from there
                 delete board[row][col];
@@ -138,11 +145,38 @@ void Render::mouse() {
                 selectedCol = -1;
                 //gives turn to the other side
                 whiteTurn = !whiteTurn;
+                check_if_check_king();
             }
         }
     }
 }
 
+// check.cpp linking it to this render.cpp......
+bool Render::move_making_king_check(Piece* piece, int row, int col) {
+
+    Cord king_position = piece->getPosition();
+    Piece* old_piece = Render::board[row][col];
+
+    // temporary move
+    Render::board[king_position.row][king_position.col] = nullptr;
+    Render::board[row][col] = piece;
+    piece->setPosition(row, col);
+
+    // it is checking if king becomes checked or not
+    bool check = Check::king_check(piece->getColor());
+
+    // now we undoing the move we did
+    Render::board[king_position.row][king_position.col] = piece;
+    Render::board[row][col] = old_piece;
+    piece->setPosition(king_position.row, king_position.col);
+    return check;
+}
+void Render::check_if_check_king() {
+    white_check = Check::king_check(color::white);
+    black_check = Check::king_check(color::black);
+    white_checkmate = Check::checking_checkmate(color::white);
+    black_checkmate = Check::checking_checkmate(color::black);
+}
 
 //creates a main grid where each rectangle is seperately drawn, keeping their width and height same(cellsize)
 void Render::mainGrid() {
@@ -161,6 +195,15 @@ void Render::mainGrid() {
             //selected rectangle becomes yellow
             if (i == selectedRow && j == selectedCol) {
                 col = YELLOW;
+            }
+            // this for checkmate and check 
+            if (board[i][j] != nullptr && board[i][j]->getTypeId() == 4) {
+                if (board[i][j]->getColor() == color::white && white_check) {
+                    col = RED;
+                }
+                if (board[i][j]->getColor() == color::black && black_check) {
+                    col = RED;
+                }
             }
             DrawRectangleRec(cell, col);
 
@@ -183,4 +226,19 @@ void Render::leftGrid(){
 
 void Render::rightGrid(){
     DrawRectangle(width - 250, 0, 250, height, LIGHTGRAY);
+    if (white_check) {
+        DrawText("white check", width - 240, 100, 30, RED);
+    }
+
+    if (black_check) {
+        DrawText("black check", width - 240, 150, 30, RED);
+    }
+
+    if (white_checkmate) {
+        DrawText("white checkmate", width - 240, 250, 30, RED);
+    }
+
+    if (black_checkmate) {
+        DrawText("black checkmate", width - 240, 300, 30, RED);
+    }
 }

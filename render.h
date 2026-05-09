@@ -22,4 +22,12 @@ public:
     static int selectedCol;
     static Piece* selectedPiece;
     static bool whiteTurn;
+
+    // by rayan for the checkmate (check.cpp)
+    static bool move_making_king_check(Piece* piece, int row, int col);
+    static void check_if_check_king();
+    static bool white_check;
+    static bool black_check;
+    static bool white_checkmate;
+    static bool black_checkmate;
 };
