@@ -2,6 +2,8 @@
 #include"render.h"
 #include<iostream>
 
+
+
 Piece::Piece(color c, int row, int col) : pieceColor(c), position{ row, col } {}
 
 color Piece::getColor() const{
@@ -15,8 +17,18 @@ Cord Piece::getPosition() const{
 void Piece::setPosition(int row, int col) {
     position.row = row;
     position.col = col;
-
+    if (!(getTypeId() == 5)) {
+        return;
+    }
+    if (getColor() == color::white && row == 0) {
+        Render::promotionPiece = Render::selectedPiece;
+    }
+    else if (getColor() == color::black && row == 7) {
+        Render::promotionPiece = Render::selectedPiece;
+    }
 }
+
+
 bool Piece::noFriendlyCapture(int row, int col) const{
     if (Render::board[row][col] != nullptr) {
         if (this->getColor() == Render::board[row][col]->getColor()) {
@@ -320,6 +332,4 @@ bool Pawn::pawn_attack(int row, int col) const {
         }
     }
     return false;
-
 }
-

@@ -1,5 +1,6 @@
 #include "render.h"
 #include "check.h"
+#include "pieces.h"
 
 const int width = 1600;
 const int height = 1100;
@@ -9,6 +10,11 @@ int Render::selectedRow = -1;
 int Render::selectedCol = -1;
 Piece* Render::selectedPiece = nullptr;
 bool Render::whiteTurn = true;
+
+Piece* Render::promotionPiece = nullptr;
+
+Font font;
+
 
 Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
@@ -64,24 +70,30 @@ void Render::initBoard() {
 
 void Render::window() {
     InitWindow(width, height, "chess game");
+    font = LoadFontEx("assets/FreeSans.otf", 32, NULL, 0);
 
     LoadTextures();
     initBoard();
 
     while (!WindowShouldClose()) {
-        mouse();
+        if (Render::promotionPiece == nullptr) {
+            mainGridMouse();
+        }
 
         BeginDrawing();
         mainGrid();
         leftGrid();
         rightGrid();
+        if (Render::promotionPiece != nullptr) {
+            Render::promotionGrid(Render::promotionPiece);
+        }
         EndDrawing();
     }
 
     CloseWindow();
 }
 
-void Render::mouse() {
+void Render::mainGridMouse() {
     Vector2 mouse = GetMousePosition();
 
     float offsetX = 250.0f;
@@ -139,7 +151,6 @@ void Render::mouse() {
                 if (pawn != nullptr) {
                     pawn->hasMoved = true;
                 }
-                //..........................
                 selectedPiece = nullptr;
                 selectedRow = -1;
                 selectedCol = -1;
@@ -241,4 +252,55 @@ void Render::rightGrid(){
     if (black_checkmate) {
         DrawText("black checkmate", width - 240, 300, 30, RED);
     }
+}
+
+
+void Render::promotionGrid(Piece* selectedPiece) {
+
+    float offsetX = 400;
+    float offsetY = 500;
+    float popupWidth = 800;
+    float popupHeight = 180;
+    float popupCell = popupWidth / 4;
+    Vector2 pos = { offsetX + 200, offsetY };
+
+    Rectangle popup = {
+        offsetX, offsetY,
+        popupWidth, popupHeight
+    };
+    DrawRectangleRounded(popup, 0.5, 10, LIGHGRAY);
+    DrawTextEx(font, "Choose a piece to promote to", pos, 32, 2, BLACK);
+    int textureIndex = (selectedPiece->getColor() == color::white) ? 0 : 6;
+    for (int i = 0; i < 4; i++) {
+        DrawTexture(textures[i + textureIndex], offsetX + i * popupCell + 30, offsetY + 30, WHITE);
+    }
+    promotionMouse(offsetX, offsetY, popupCell);
+}
+
+void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
+    Vector2 mouse = GetMousePosition();
+    if (mouse.x < offsetX || mouse.x>1200 || mouse.y < 500 || mouse.y>680) {
+        return;
+    }
+    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+    return;
+    }
+    int choice = (mouse.x - offsetX) / popupCell;
+    Cord cordinates = (promotionPiece->getPosition());
+    switch (choice) {
+    case 0:
+        board[cordinates.row][cordinates.col] = new Rook(promotionPiece->getColor(), cordinates.row, cordinates.col);
+        break;
+    case 1:
+        board[cordinates.row][cordinates.col] = new Knight(promotionPiece->getColor(), cordinates.row, cordinates.col);
+        break;
+    case 2:
+            board[cordinates.row][cordinates.col] = new Bishop(promotionPiece->getColor(), cordinates.row, cordinates.col);
+            break;
+    case 3:
+            board[cordinates.row][cordinates.col] = new Queen(promotionPiece->getColor(), cordinates.row, cordinates.col);
+            break;
+    }
+    promotionPiece = nullptr;
+
 }

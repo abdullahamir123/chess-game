@@ -15,13 +15,18 @@ public:
     static void mainGrid();
     static void leftGrid();
     static void rightGrid();
+    static void promotionGrid(Piece* promotionPiece);
 
-    static void mouse();
+    static void mainGridMouse();
+    static void promotionMouse(float offsetX, float OffsetY, float popupCell);
 
     static int selectedRow;
     static int selectedCol;
     static Piece* selectedPiece;
+
     static bool whiteTurn;
+  
+    static Piece* promotionPiece;
 
     // by rayan for the checkmate (check.cpp)
     static bool move_making_king_check(Piece* piece, int row, int col);
@@ -30,4 +35,5 @@ public:
     static bool black_check;
     static bool white_checkmate;
     static bool black_checkmate;
+  
 };
