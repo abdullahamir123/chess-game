@@ -198,6 +198,7 @@ bool Pawn::validmove(int row, int col) {
                 return true;
             }
         }
+    }
     if (!isPawnPathClear(row)) { 
         return false;
     }
