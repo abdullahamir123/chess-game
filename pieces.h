@@ -34,7 +34,7 @@ public:
     bool hasMoved;
     Pawn(color c, int row, int col);
     int getTypeId() const override;
-    bool validmove(int row, int col)  override;
+    bool validmove(int row, int col) override;
     bool isPawnPathClear(int row);
     bool pawn_attack(int row, int col) const;
 };
