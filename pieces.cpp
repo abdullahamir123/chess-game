@@ -211,7 +211,7 @@ bool Pawn::validmove(int row, int col) {
             }
         }
     }
-    if (!isPawnPathClear(row)) {
+    if (!isPawnPathClear(row)) { 
         return false;
     }
     if (col == position.col) {
