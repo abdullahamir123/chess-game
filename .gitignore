@@ -5,3 +5,11 @@ x64/
 packages.config
 *.vcxproj.user
 packages.config
+packages/raylib.5.5.0
+.vs/
+Debug/
+Release/
+ipch/
+packages/
+*.user
+*.suo
