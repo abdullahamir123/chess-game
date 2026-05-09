@@ -36,6 +36,7 @@ public:
     int getTypeId() const override;
     bool validmove(int row, int col)  override;
     bool isPawnPathClear(int row);
+    bool pawn_attack(int row, int col) const;
 };
 
 class Rook : public Piece {

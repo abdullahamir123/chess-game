@@ -145,6 +145,59 @@ bool Pawn::isPawnPathClear(int row) {
 
 Pawn::Pawn(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
 bool Pawn::validmove(int row, int col) {
+    if (pieceColor == color::white) {
+        // diagonal attacking of pawn when a enemy piece near its diognal
+        if (row == position.row - 1) {
+            if (col == position.col - 1 || col == position.col + 1) {
+                if (Render::board[row][col] != nullptr) {
+                    if (Render::board[row][col]->getColor() != pieceColor) {
+                        return true;
+                    }
+                }
+            }
+        }
+        // moving forward
+        if (col == position.col) {
+            if (!isPawnPathClear(row)) {
+                return false;
+            }
+            // it onyl allwoing that pawn can only move 2 steps only once
+            if (!hasMoved) {
+                if (row == position.row - 1 || row == position.row - 2) {
+                    return true;
+                }
+            }
+            if (row == position.row - 1) {
+                return true;
+            }
+        }
+    }
+    if (pieceColor == color::black) {
+        // diagonal attacking of pawn when a enemy piece near its diognal
+        if (row == position.row + 1) {
+            if (col == position.col - 1 || col == position.col + 1) {
+                if (Render::board[row][col] != nullptr) {
+                    if (Render::board[row][col]->getColor() != pieceColor) {
+                        return true;
+                    }
+                }
+            }
+        }
+        // moving forward
+        if (col == position.col) {
+            if (!isPawnPathClear(row)) {
+                return false;
+            }
+            // it onyl allwoing that pawn can only move 2 steps only once
+            if (!hasMoved) {
+                if (row == position.row + 1 || row == position.row + 2) {
+                    return true;
+                }
+            }
+            if (row == position.row + 1) {
+                return true;
+            }
+        }
     if (!isPawnPathClear(row)) { 
         return false;
     }
@@ -171,6 +224,7 @@ bool Pawn::validmove(int row, int col) {
             return row == position.row - 1;
         }
         return false;
+
     }
     return false;
 }
@@ -245,4 +299,26 @@ bool King::validmove(int row, int col) {
         return false;
     }
     return true;
+
+}
+
+// pawn attacking check
+bool Pawn::pawn_attack(int row, int col) const {
+    if (pieceColor == color::white) {
+        if (row == position.row - 1) {
+            if (col == position.col - 1 ||
+                col == position.col + 1) {
+                return true;
+            }
+        }
+    }
+    if (pieceColor == color::black) {
+        if (row == position.row + 1) {
+            if (col == position.col - 1 ||
+                col == position.col + 1) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

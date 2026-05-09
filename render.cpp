@@ -116,7 +116,6 @@ void Render::mouse() {
         }
         return;
     }
-
     //if a piece is already selected and another selection occurs(moving a piece)
     if (selectedPiece != nullptr) {
         //first check if the move is valid moveset of the piece type
@@ -128,7 +127,12 @@ void Render::mouse() {
                 delete board[row][col];
                 selectedPiece->setPosition(row, col);
                 board[row][col] = selectedPiece;
-
+                // this is stopping the pawn to move 2 steps as if it has alredy moved
+                Pawn* pawn = dynamic_cast<Pawn*>(selectedPiece);
+                if (pawn != nullptr) {
+                    pawn->hasMoved = true;
+                }
+                //..........................
                 selectedPiece = nullptr;
                 selectedRow = -1;
                 selectedCol = -1;
