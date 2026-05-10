@@ -7,7 +7,6 @@ struct Cord {
     int col;
 };
 
-
 class Piece {
 protected:
     color pieceColor;
@@ -25,7 +24,7 @@ public:
     bool isPathClear(int row, int col) const;
 
     virtual int getTypeId() const = 0;
-    virtual bool validmove(int row, int col)  = 0;
+    virtual bool validmove(int row, int col) = 0;
 
     virtual bool canAttack(int row, int col) {
         return validmove(row, col);
@@ -34,7 +33,6 @@ public:
     virtual bool getHasMoved() const { return true; }
 
 };
-
 
 class Pawn : public Piece {
 public:
@@ -64,7 +62,6 @@ public:
     Knight(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
-
 };
 
 class Bishop : public Piece {
@@ -72,7 +69,6 @@ public:
     Bishop(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
-
 };
 
 class Queen : public Piece {
@@ -80,7 +76,6 @@ public:
     Queen(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
-
 };
 
 class King : public Piece {
@@ -89,5 +84,6 @@ public:
     King(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
+    bool canAttack(int row, int col) override;
     void afterMove() override;
 };
