@@ -26,6 +26,10 @@ public:
 
     virtual int getTypeId() const = 0;
     virtual bool validmove(int row, int col)  = 0;
+
+    virtual bool canAttack(int row, int col) {
+        return validmove(row, col);
+    }
 };
 
 
@@ -36,7 +40,8 @@ public:
     int getTypeId() const override;
     bool validmove(int row, int col) override;
     bool isPawnPathClear(int row);
-    bool pawn_attack(int row, int col) const;
+    bool canAttack(int row, int col) override;
+
 };
 
 class Rook : public Piece {

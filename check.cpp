@@ -38,19 +38,8 @@ bool Check::king_check(color color_king) {
             }
 
             // this only for pawn as if it can attack dignoally so i am cheking this way
-            // if u have any better idea update it but do tell me 
-            if (enemy->getTypeId() == 5) {
-                Pawn* pawn = dynamic_cast<Pawn*>(enemy);
-                if (pawn &&pawn->pawn_attack(location_king.row, location_king.col)) {
-                    return true;
-                }
-            }
-            else {
-                if (enemy->validmove(location_king.row, location_king.col)) {
-                    if (enemy->noFriendlyCapture(location_king.row, location_king.col)){
-                        return true;
-                    }
-                }
+            if (enemy->canAttack(location_king.row, location_king.col)) {
+                return true;
             }
         }
     }
@@ -100,6 +89,8 @@ bool Check::piece_move_checkmate(color kingColor) {
     }
     return false;
 }
+
+
 bool Check::checking_checkmate(color kingColor) {
 
     if (!king_check(kingColor)) {

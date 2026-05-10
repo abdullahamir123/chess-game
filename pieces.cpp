@@ -116,39 +116,16 @@ bool Piece::isPathClear(int rowDiff, int colDiff) const {
 
 
 bool Pawn::isPawnPathClear(int row) {
+    int forward = (pieceColor == color::white) ? -1 : 1;
 
-    if (getColor() == color::black) {
-        if (Render::board[position.row+1][position.col] != nullptr) {
-            return false;
-        }
-        if (!hasMoved) {
-            if (std::abs(position.row - row) == 2) {
-                if (Render::board[position.row + 2][position.col] != nullptr) {
-                    return false;
-                }
-            }
-            else {
-                if (Render::board[position.row + 1][position.col] != nullptr) {
-                    return false;
-                }
-            }
-        }
+    // check one sqaure
+    if (Render::board[position.row + forward][position.col] != nullptr) {
+        return false;
     }
-    if (getColor() == color::white) {
-        if (Render::board[position.row - 1][position.col] != nullptr) {
+    // check second square if moving two places
+    if (std::abs(row - position.row) == 2) {
+        if (Render::board[row][position.col] != nullptr) {
             return false;
-        }
-        if (!hasMoved) {
-            if (std::abs(position.row - row) == 2) {
-                if (Render::board[position.row - 2][position.col] != nullptr) {
-                    return false;
-                }
-            }
-            else {
-                if (Render::board[position.row - 1][position.col] != nullptr) {
-                    return false;
-                }
-            }
         }
     }
     return true;
@@ -157,88 +134,24 @@ bool Pawn::isPawnPathClear(int row) {
 
 Pawn::Pawn(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
 bool Pawn::validmove(int row, int col) {
-    if (pieceColor == color::white) {
-        // diagonal attacking of pawn when a enemy piece near its diognal
-        if (row == position.row - 1) {
-            if (col == position.col - 1 || col == position.col + 1) {
-                if (Render::board[row][col] != nullptr) {
-                    if (Render::board[row][col]->getColor() != pieceColor) {
-                        return true;
-                    }
-                }
-            }
-        }
-        // moving forward
-        if (col == position.col) {
-            if (!isPawnPathClear(row)) {
-                return false;
-            }
-            // it onyl allwoing that pawn can only move 2 steps only once
-            if (!hasMoved) {
-                if (row == position.row - 1 || row == position.row - 2) {
-                    return true;
-                }
-            }
-            if (row == position.row - 1) {
-                return true;
-            }
-        }
-    }
-    if (pieceColor == color::black) {
-        // diagonal attacking of pawn when a enemy piece near its diognal
-        if (row == position.row + 1) {
-            if (col == position.col - 1 || col == position.col + 1) {
-                if (Render::board[row][col] != nullptr) {
-                    if (Render::board[row][col]->getColor() != pieceColor) {
-                        return true;
-                    }
-                }
-            }
-        }
-        // moving forward
-        if (col == position.col) {
-            if (!isPawnPathClear(row)) {
-                return false;
-            }
-            // it onyl allwoing that pawn can only move 2 steps only once
-            if (!hasMoved) {
-                if (row == position.row + 1 || row == position.row + 2) {
-                    return true;
-                }
-            }
-            if (row == position.row + 1) {
-                return true;
-            }
-        }
-    }
-    if (!isPawnPathClear(row)) { 
-        return false;
-    }
-    if (col == position.col) {
-        if (pieceColor == color::black) {
-            if (!hasMoved) {
-                if (std::abs(row - position.row) > 2) {
-                    return false;
-                }
-                hasMoved = true;
-                return row == position.row + 1 || row == position.row + 2;
-            }
-            return row == position.row + 1;
-        }
+    int forward = (pieceColor == color::white) ? -1 : 1;
+    int rowDiff = row - position.row;
+    int colDiff = std::abs(col - position.col);
 
-        if (pieceColor == color::white) {
-            if (!hasMoved) {
-                if (std::abs(row - position.row) > 2) {
-                    return false;
-                }
-                hasMoved = true;
-                return row == position.row - 1 || row == position.row - 2;
-            }
-            return row == position.row - 1;
-        }
-        return false;
+    //if moving(not capture)
+    if (colDiff == 0) {
+        bool oneStep = (rowDiff == forward);
+        bool twoStep = (!hasMoved && rowDiff == 2 * forward);
 
+        if (oneStep || twoStep) {
+            return isPawnPathClear(row);
+        }
     }
+
+    if (colDiff == 1 && rowDiff == forward) {
+        return Render::board[row][col] != nullptr;
+    }
+
     return false;
 }
 
@@ -316,19 +229,11 @@ bool King::validmove(int row, int col) {
 }
 
 // pawn attacking check
-bool Pawn::pawn_attack(int row, int col) const {
-    if (pieceColor == color::white) {
-        if (row == position.row - 1) {
-            if (col == position.col - 1 || col == position.col + 1) {
-                return true;
-            }
-        }
-    }
-    if (pieceColor == color::black) {
-        if (row == position.row + 1) {
-            if (col == position.col - 1 || col == position.col + 1) {
-                return true;
-            }
+bool Pawn::canAttack(int row, int col)  {
+    int forward = (pieceColor == color::white) ? -1 : 1;
+    if (row == position.row + forward) {
+        if (col == position.col + 1 || col == position.col - 1) {
+            return true;
         }
     }
     return false;

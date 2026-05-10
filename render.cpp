@@ -189,7 +189,7 @@ void Render::check_if_check_king() {
     black_checkmate = Check::checking_checkmate(color::black);
 }
 
-//creates a main grid where each rectangle is seperately drawn, keeping their width and height same(cellsize)
+//creates a main grid where each rectangle is seperately drawn
 void Render::mainGrid() {
     float offsetX = 250.0f;
 
@@ -207,7 +207,7 @@ void Render::mainGrid() {
             if (i == selectedRow && j == selectedCol) {
                 col = YELLOW;
             }
-            // this for checkmate and check 
+            // this for checkmate and check
             if (board[i][j] != nullptr && board[i][j]->getTypeId() == 4) {
                 if (board[i][j]->getColor() == color::white && white_check) {
                     col = RED;
@@ -276,6 +276,7 @@ void Render::promotionGrid(Piece* selectedPiece) {
     }
     promotionMouse(offsetX, offsetY, popupCell);
 }
+
 
 void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
     Vector2 mouse = GetMousePosition();
