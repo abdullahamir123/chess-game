@@ -37,6 +37,9 @@ public:
     static bool white_checkmate;
     static bool black_checkmate;
 
+    static int enPassantCol;
+    static int enPassantRow;
+    
 
     // for pop up after game end
     static void drawPopup();
