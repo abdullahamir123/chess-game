@@ -46,22 +46,6 @@ bool Check::king_check(color color_king) {
     return false;
 }
 
-bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) {
-    Cord position_king = piece->getPosition();
-
-    Piece* capture_piece = Render::board[targetRow][targetCol];
-    Render::board[position_king.row][position_king.col] = nullptr;
-    Render::board[targetRow][targetCol] = piece;
-
-    piece->setPosition(targetRow, targetCol);
-    bool safe = !king_check(piece->getColor());
-    Render::board[position_king.row][position_king.col] = piece;
-    Render::board[targetRow][targetCol] = capture_piece;
-    piece->setPosition(position_king.row, position_king.col);
-    return safe;
-}
-
-
 bool Check::piece_move_checkmate(color kingColor) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -90,6 +74,37 @@ bool Check::piece_move_checkmate(color kingColor) {
     return false;
 }
 
+bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) {
+    Cord position_king = piece->getPosition();
+
+    Piece* capture_piece = Render::board[targetRow][targetCol];
+    Render::board[position_king.row][position_king.col] = nullptr;
+    Render::board[targetRow][targetCol] = piece;
+
+    piece->setPosition(targetRow, targetCol);
+    bool safe = !king_check(piece->getColor());
+    Render::board[position_king.row][position_king.col] = piece;
+    Render::board[targetRow][targetCol] = capture_piece;
+    piece->setPosition(position_king.row, position_king.col);
+    return safe;
+}
+
+
+
+
+bool Check::checking_stalemate(color kingColor) {
+    //if king in check, not stalemate
+    if (king_check(kingColor))
+        return false;
+
+    //check if valid move, return true if so
+    if (piece_move_checkmate(kingColor))
+        return false;
+
+    //if no moves or no check then stalemate
+    return true;
+
+}
 
 bool Check::checking_checkmate(color kingColor) {
 
@@ -102,16 +117,3 @@ bool Check::checking_checkmate(color kingColor) {
     return true;
 }
 
-bool Check::checking_stalemate(color kingColor) {
-    //if king in check, not stalemate
-    if (king_check(kingColor)) 
-        return false;
-    
-    //check if valid move, return true if so
-    if (piece_move_checkmate(kingColor))
-        return false;
-
-    //if no moves or no check then stalemate
-    return true;
-
-}
