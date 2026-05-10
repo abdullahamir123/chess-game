@@ -15,7 +15,8 @@ bool Render::whiteTurn = true;
 Piece* Render::promotionPiece = nullptr;
 
 Font font;
-
+vector<int> Render::whiteCaptured;
+vector<int> Render::blackCaptured;
 Texture2D Render::endGameTexture;
 Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
@@ -88,6 +89,7 @@ void Render::window() {
         mainGrid();
         leftGrid();
         rightGrid();
+        drawCapture();
         if (Render::promotionPiece != nullptr) {
             Render::promotionGrid(Render::promotionPiece);
         }
@@ -136,25 +138,35 @@ void Render::mainGridMouse() {
     }
 
     if (selectedPiece->validmove(row, col)) {
-        //checking if move valid. will be return false if doing so makes their own king in check
         if (move_making_king_check(selectedPiece, row, col)) {
             return;
         }
+        if (board[row][col] != nullptr) {
+            int capturedId = board[row][col]->getTypeId();
+            color capturedColor = board[row][col]->getColor();
 
+            // basically adding the captured id into the white list for the piece captured
+            if (capturedColor == color::white) {
+                whiteCaptured.push_back(capturedId);
+            }
+            // vice versa
+            else {
+                blackCaptured.push_back(capturedId);
+            }
+            //delete
+            delete board[row][col];
+        }
         board[selectedRow][selectedCol] = nullptr;
-        //deleting the captured piece
-        delete board[row][col];
-
         board[row][col] = selectedPiece;
         selectedPiece->setPosition(row, col);
-        //related to removing pawn ability to move two steps after first one and checking promotion
         selectedPiece->afterMove();
-
         selectedPiece = nullptr;
         selectedRow = -1;
         selectedCol = -1;
 
+        // turn switch
         whiteTurn = !whiteTurn;
+        //checks if checkmate, stalemate or check
         updateState();
     }
 }
@@ -341,4 +353,25 @@ void Render::drawPopup() {
     const char* closeHint = "Press ESC to exit";
     Vector2 hintSize = MeasureTextEx(font, closeHint, 18, 1);
     DrawTextEx(font, closeHint, { x + (W - hintSize.x) / 2, y + 220 }, 18, 1, RED);
+}
+
+void Render::drawCapture() {
+    float scale = 0.4f; 
+    //increasing space between the pieces
+    float spacingX = 38.0f;
+    float spacingY = 46.0f;
+  //display pieces captured by white on bottom right and for black on top left
+    for (int i = 0; i < whiteCaptured.size(); i++) {
+        int texIndex = whiteCaptured[i]; 
+        float x = 10 + (i % 6) * spacingX;
+        float y = 10 + (i / 6) * spacingY;
+        DrawTextureEx(textures[texIndex], { x, y }, 0, scale, WHITE);
+    }
+
+    for (int i = 0; i < blackCaptured.size(); i++) {
+        int texIndex = blackCaptured[i] + 6; 
+        float x = 1360 + (i % 6) * spacingX;
+        float y = 1050 - (i / 6) * spacingY; 
+        DrawTextureEx(textures[texIndex], { x, y }, 0, scale, WHITE);
+    }
 }

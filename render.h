@@ -1,7 +1,8 @@
 #pragma once
 #include "raylib.h"
 #include "pieces.h"
-
+#include <vector>
+using namespace std;
 class Render {
 public:
     static Piece* board[8][8];
@@ -44,4 +45,9 @@ public:
     static bool black_stalemate;
     //this will update after every move, checking if its checkmate or check by calling those functions-if so then pop up
     static void updateState();
+
+    //declarations for displaying captured pieces
+    static vector<int> whiteCaptured; 
+    static vector<int> blackCaptured;
+    static void drawCapture();
 };
