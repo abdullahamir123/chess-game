@@ -25,7 +25,7 @@ public:
     static Piece* selectedPiece;
 
     static bool whiteTurn;
-  
+
     static Piece* promotionPiece;
 
     // by rayan for the checkmate (check.cpp)
@@ -35,5 +35,5 @@ public:
     static bool black_check;
     static bool white_checkmate;
     static bool black_checkmate;
-  
+
 };

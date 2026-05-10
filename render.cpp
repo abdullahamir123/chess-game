@@ -6,6 +6,7 @@ const int width = 1600;
 const int height = 1100;
 const float cellSize = (width - 500.0f) / 8.0f;
 
+
 int Render::selectedRow = -1;
 int Render::selectedCol = -1;
 Piece* Render::selectedPiece = nullptr;
@@ -81,12 +82,14 @@ void Render::window() {
         }
 
         BeginDrawing();
+
         mainGrid();
         leftGrid();
         rightGrid();
         if (Render::promotionPiece != nullptr) {
             Render::promotionGrid(Render::promotionPiece);
         }
+
         EndDrawing();
     }
 
@@ -95,74 +98,66 @@ void Render::window() {
 
 void Render::mainGridMouse() {
     Vector2 mouse = GetMousePosition();
-
     float offsetX = 250.0f;
 
     if ((mouse.x - offsetX) / cellSize < 0.0){
         return;
     }
-
     int col = (mouse.x - offsetX) / cellSize;
     int row = mouse.y / cellSize;
 
-    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         return;
-
-    //checks out of bound
-    if (row < 0 || row >= 8 || col < 0 || col >= 8)
+    }
+    if (row < 0 || row >= 8 || col < 0 || col >= 8) {
         return;
+    }
 
-    //deselect an already selected piece by clicking on it again
-    if (selectedPiece != nullptr && selectedRow == row && selectedCol == col){
+    //if selectedpiece remains same. we unselect
+    if (selectedPiece && selectedRow == row && selectedCol == col) {
         selectedPiece = nullptr;
         selectedRow = -1;
         selectedCol = -1;
         return;
     }
 
-    //if no selection yet, and a new selection occurs, first check if new selection is not nullptr. if not then point selected piece towards it
-    if (selectedPiece == nullptr) {
-        if (board[row][col] != nullptr) {
-            //check if the black or whites turn
-            if ((board[row][col]->getColor() == color::white && whiteTurn) || (board[row][col]->getColor() == color::black && !whiteTurn)) {
-                selectedPiece = board[row][col];
-                selectedRow = row;
-                selectedCol = col;
-            }
-        }
+    //if selected piece color same as next selection, change selected piece to new (selecting a diff piece to move)
+    if (board[row][col] && ((board[row][col]->getColor() == color::white && whiteTurn) || (board[row][col]->getColor() == color::black && !whiteTurn))) {
+        selectedPiece = board[row][col];
+        selectedRow = row;
+        selectedCol = col;
         return;
     }
-    //if a piece is already selected and another selection occurs(moving a piece)
-    if (selectedPiece != nullptr) {
-        //first check if the move is valid moveset of the piece type
-        if (selectedPiece->validmove(row, col)) {
-            //check if not capturing it's own piece
-            if (selectedPiece->noFriendlyCapture(row, col)) {
-                if (move_making_king_check(selectedPiece, row, col)) {
-                    return;
-                }
-                board[selectedRow][selectedCol] = nullptr;
-                //move selectedpiece after deleting old piece from there
-                delete board[row][col];
-                selectedPiece->setPosition(row, col);
-                board[row][col] = selectedPiece;
-                // this is stopping the pawn to move 2 steps as if it has alredy moved
-                Pawn* pawn = dynamic_cast<Pawn*>(selectedPiece);
-                if (pawn != nullptr) {
-                    pawn->hasMoved = true;
-                }
-                selectedPiece = nullptr;
-                selectedRow = -1;
-                selectedCol = -1;
-                //gives turn to the other side
-                whiteTurn = !whiteTurn;
-                check_if_check_king();
-            }
+
+    if (selectedPiece == nullptr) {
+        return;
+    }
+
+    if (selectedPiece->validmove(row, col)) {
+        //checking if move valid. will be return false if doing so makes their own king in check
+        if (move_making_king_check(selectedPiece, row, col)) {
+            return;
         }
+
+        board[selectedRow][selectedCol] = nullptr;
+        //deleting the captured piece
+        delete board[row][col];
+
+        board[row][col] = selectedPiece;
+        selectedPiece->setPosition(row, col);
+        //related to removing pawn ability to move two steps after first one and checking promotion
+        selectedPiece->afterMove();
+
+        selectedPiece = nullptr;
+        selectedRow = -1;
+        selectedCol = -1;
+
+        whiteTurn = !whiteTurn;
+        check_if_check_king();
     }
 }
 
-// check.cpp linking it to this render.cpp......
+// check.cpp linking it to this render.cpp
 bool Render::move_making_king_check(Piece* piece, int row, int col) {
 
     Cord king_position = piece->getPosition();
@@ -182,6 +177,7 @@ bool Render::move_making_king_check(Piece* piece, int row, int col) {
     piece->setPosition(king_position.row, king_position.col);
     return check;
 }
+
 void Render::check_if_check_king() {
     white_check = Check::king_check(color::white);
     black_check = Check::king_check(color::black);
@@ -189,7 +185,7 @@ void Render::check_if_check_king() {
     black_checkmate = Check::checking_checkmate(color::black);
 }
 
-//creates a main grid where each rectangle is seperately drawn, keeping their width and height same(cellsize)
+//creates a main grid where each rectangle is seperately drawn
 void Render::mainGrid() {
     float offsetX = 250.0f;
 
@@ -207,8 +203,8 @@ void Render::mainGrid() {
             if (i == selectedRow && j == selectedCol) {
                 col = YELLOW;
             }
-            // this for checkmate and check 
-            if (board[i][j] != nullptr && board[i][j]->getTypeId() == 4) {
+            // this for checkmate and check
+            if (board[i][j] && board[i][j]->getTypeId() == 4) {
                 if (board[i][j]->getColor() == color::white && white_check) {
                     col = RED;
                 }
@@ -220,7 +216,7 @@ void Render::mainGrid() {
 
             //draws the pieces
             Piece* p = board[i][j];
-            if (p != nullptr) {
+            if (p) {
                 int base = (p->getColor() == color::white) ? 0 : 6;
                 int texIndex = base + p->getTypeId();
 
@@ -237,21 +233,6 @@ void Render::leftGrid(){
 
 void Render::rightGrid(){
     DrawRectangle(width - 250, 0, 250, height, LIGHTGRAY);
-    if (white_check) {
-        DrawText("white check", width - 240, 100, 30, RED);
-    }
-
-    if (black_check) {
-        DrawText("black check", width - 240, 150, 30, RED);
-    }
-
-    if (white_checkmate) {
-        DrawText("white checkmate", width - 240, 250, 30, RED);
-    }
-
-    if (black_checkmate) {
-        DrawText("black checkmate", width - 240, 300, 30, RED);
-    }
 }
 
 
@@ -277,30 +258,37 @@ void Render::promotionGrid(Piece* selectedPiece) {
     promotionMouse(offsetX, offsetY, popupCell);
 }
 
+
 void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
     Vector2 mouse = GetMousePosition();
-    if (mouse.x < offsetX || mouse.x>1200 || mouse.y < 500 || mouse.y>680) {
+    if (mouse.x < offsetX || mouse.x > 1200 || mouse.y < 500 || mouse.y > 680) {
         return;
     }
     if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-    return;
+        return;
     }
+
     int choice = (mouse.x - offsetX) / popupCell;
-    Cord cordinates = (promotionPiece->getPosition());
+
+    color promotionColor = promotionPiece->getColor();
+    Cord promotionCord = promotionPiece->getPosition();
+    delete board[promotionCord.row][promotionCord.col];
+
     switch (choice) {
     case 0:
-        board[cordinates.row][cordinates.col] = new Rook(promotionPiece->getColor(), cordinates.row, cordinates.col);
+        board[promotionCord.row][promotionCord.col] = new Rook(promotionColor, promotionCord.row, promotionCord.col);
         break;
     case 1:
-        board[cordinates.row][cordinates.col] = new Knight(promotionPiece->getColor(), cordinates.row, cordinates.col);
+        board[promotionCord.row][promotionCord.col] = new Knight(promotionColor, promotionCord.row, promotionCord.col);
         break;
     case 2:
-            board[cordinates.row][cordinates.col] = new Bishop(promotionPiece->getColor(), cordinates.row, cordinates.col);
-            break;
+        board[promotionCord.row][promotionCord.col] = new Bishop(promotionColor, promotionCord.row, promotionCord.col);
+        break;
     case 3:
-            board[cordinates.row][cordinates.col] = new Queen(promotionPiece->getColor(), cordinates.row, cordinates.col);
-            break;
+        board[promotionCord.row][promotionCord.col] = new Queen(promotionColor, promotionCord.row, promotionCord.col);
+        break;
     }
-    promotionPiece = nullptr;
 
+    promotionPiece = nullptr;
+    check_if_check_king();
 }
