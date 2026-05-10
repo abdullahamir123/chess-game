@@ -19,15 +19,17 @@ int Render::enPassantRow = -1;
 Piece* Render::promotionPiece = nullptr;
 
 Font font;
-
-
+vector<int> Render::whiteCaptured;
+vector<int> Render::blackCaptured;
+Texture2D Render::endGameTexture;
 Piece* Render::board[8][8] = { nullptr };
 Texture2D Render::textures[12];
 bool Render::white_check = false;
 bool Render::black_check = false;
 bool Render::white_checkmate = false;
 bool Render::black_checkmate = false;
-
+bool Render::white_stalemate = false;
+bool Render::black_stalemate = false;
 //loads all assets to memory
 //for white variant, 0 to 5. for the black variant of same type, +6
 void Render::LoadTextures() {
@@ -44,6 +46,7 @@ void Render::LoadTextures() {
     textures[9] = LoadTexture("assets/black-queen.png");
     textures[10] = LoadTexture("assets/black-king.png");
     textures[11] = LoadTexture("assets/black-pawn.png");
+    endGameTexture = LoadTexture("assets/cat endpopup.png");
 }
 
 
@@ -90,10 +93,11 @@ void Render::window() {
         mainGrid();
         leftGrid();
         rightGrid();
+        drawCapture();
         if (Render::promotionPiece != nullptr) {
             Render::promotionGrid(Render::promotionPiece);
         }
-
+        drawPopup();
         EndDrawing();
     }
 
@@ -138,10 +142,12 @@ void Render::mainGridMouse() {
     }
 
     if (selectedPiece->validmove(row, col)) {
-        //checking if move valid. will be return false if doing so makes their own king in check
         if (move_making_king_check(selectedPiece, row, col)) {
             return;
         }
+        if (board[row][col] != nullptr) {
+            int capturedId = board[row][col]->getTypeId();
+            color capturedColor = board[row][col]->getColor();
 
         //special moves execution
 
@@ -174,23 +180,31 @@ void Render::mainGridMouse() {
             enPassantCol = -1; // Reset if any other move is made
         }
 
+            // basically adding the captured id into the white list for the piece captured
+            if (capturedColor == color::white) {
+                whiteCaptured.push_back(capturedId);
+            }
+            // vice versa
+            else {
+                blackCaptured.push_back(capturedId);
+            }
+            //delete
+            delete board[row][col];
+        }
         board[selectedRow][selectedCol] = nullptr;
-        //deleting the captured piece
-        delete board[row][col];
-
         board[row][col] = selectedPiece;
         selectedPiece->setPosition(row, col);
-        //related to removing pawn ability to move two steps after first one and checking promotion
         selectedPiece->afterMove();
-
-        whiteTurn = !whiteTurn;
 
 
         selectedPiece = nullptr;
         selectedRow = -1;
         selectedCol = -1;
 
-        check_if_check_king();
+        // turn switch
+        whiteTurn = !whiteTurn;
+        //checks if checkmate, stalemate or check
+        updateState();
     }
 }
 
@@ -215,12 +229,6 @@ bool Render::move_making_king_check(Piece* piece, int row, int col) {
     return check;
 }
 
-void Render::check_if_check_king() {
-    white_check = Check::king_check(color::white);
-    black_check = Check::king_check(color::black);
-    white_checkmate = Check::checking_checkmate(color::white);
-    black_checkmate = Check::checking_checkmate(color::black);
-}
 
 //creates a main grid where each rectangle is seperately drawn
 void Render::mainGrid() {
@@ -327,5 +335,80 @@ void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
     }
 
     promotionPiece = nullptr;
-    check_if_check_king();
+    updateState();
+}
+
+//basically after every move this function is called and it checks for check, stalemate and checkmate
+void Render::updateState() {
+    // checking if checkmate or stalemate against white
+    white_checkmate = Check::checking_checkmate(color::white);
+    white_stalemate = Check::checking_stalemate(color::white);
+
+    // vice versa
+    black_checkmate = Check::checking_checkmate(color::black);
+    black_stalemate = Check::checking_stalemate(color::black);
+
+    // checking for check
+    white_check = Check::king_check(color::white);
+    black_check = Check::king_check(color::black);
+}
+
+void Render::drawPopup() {
+    float W = 640, H = 280;
+    //checking if ture for pop up
+    bool isStalemate = (white_stalemate || black_stalemate);
+    if (!white_checkmate && !black_checkmate && !isStalemate) {
+        return;
+    }
+
+    // blur background
+    DrawRectangle(0, 0, 1600, 1100, Fade(BLACK, 0.75f));
+
+    float x = (1600 - W) / 2.0f;
+    float y = (1100 - H) / 2.0f;
+    Rectangle source = { 0, 0, (float)endGameTexture.width, (float)endGameTexture.height };
+    Rectangle dest = { x, y, W, H };
+    DrawTexturePro(endGameTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
+    const char* subtext = "";
+    Color highlight = BLACK;
+    if (white_checkmate) {
+        subtext = "Black Wins";
+        highlight = BLACK;
+    }
+    else if (black_checkmate) {
+        subtext = "White Wins";
+        highlight = BLACK;
+    }
+    else if (isStalemate) {
+        subtext = "Stalemate";
+        highlight = BLACK;
+    }
+    Vector2 headSize = MeasureTextEx(font, "Match Ended", 42, 2);
+    Vector2 subSize = MeasureTextEx(font, subtext, 28, 1);
+    DrawTextEx(font, "Match Ended", { x + (W - headSize.x) / 2, y + 50 }, 42, 2, BLACK);
+    DrawTextEx(font, subtext, { x + (W - subSize.x) / 2, y + 130 }, 28, 1, highlight);
+    const char* closeHint = "Press ESC to exit";
+    Vector2 hintSize = MeasureTextEx(font, closeHint, 18, 1);
+    DrawTextEx(font, closeHint, { x + (W - hintSize.x) / 2, y + 220 }, 18, 1, RED);
+}
+
+void Render::drawCapture() {
+    float scale = 0.4f; 
+    //increasing space between the pieces
+    float spacingX = 38.0f;
+    float spacingY = 46.0f;
+  //display pieces captured by white on bottom right and for black on top left
+    for (int i = 0; i < whiteCaptured.size(); i++) {
+        int texIndex = whiteCaptured[i]; 
+        float x = 10 + (i % 6) * spacingX;
+        float y = 10 + (i / 6) * spacingY;
+        DrawTextureEx(textures[texIndex], { x, y }, 0, scale, WHITE);
+    }
+
+    for (int i = 0; i < blackCaptured.size(); i++) {
+        int texIndex = blackCaptured[i] + 6; 
+        float x = 1360 + (i % 6) * spacingX;
+        float y = 1050 - (i / 6) * spacingY; 
+        DrawTextureEx(textures[texIndex], { x, y }, 0, scale, WHITE);
+    }
 }

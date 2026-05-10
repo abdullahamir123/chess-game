@@ -1,12 +1,14 @@
 #pragma once
 #include "raylib.h"
 #include "pieces.h"
-
+#include <vector>
+using namespace std;
 class Render {
 public:
     static Piece* board[8][8];
     static Texture2D textures[12];
-
+    //end popup background for funsies :)
+    static Texture2D endGameTexture;
     static void LoadTextures();
 
     static void initBoard();
@@ -30,7 +32,6 @@ public:
 
     // by rayan for the checkmate (check.cpp)
     static bool move_making_king_check(Piece* piece, int row, int col);
-    static void check_if_check_king();
     static bool white_check;
     static bool black_check;
     static bool white_checkmate;
@@ -39,4 +40,17 @@ public:
     static int enPassantCol;
     static int enPassantRow;
     
+
+    // for pop up after game end
+    static void drawPopup();
+    //stalemate, render
+    static bool white_stalemate;
+    static bool black_stalemate;
+    //this will update after every move, checking if its checkmate or check by calling those functions-if so then pop up
+    static void updateState();
+
+    //declarations for displaying captured pieces
+    static vector<int> whiteCaptured; 
+    static vector<int> blackCaptured;
+    static void drawCapture();
 };
