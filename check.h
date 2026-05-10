@@ -11,4 +11,5 @@ public:
         int targetCol
     );
     static Cord locate_king(color kingColor);
+    static bool checking_stalemate(color kingColor);
 };
