@@ -103,13 +103,22 @@ bool Pawn::validmove(int row, int col) {
     }
 
     if (colDiff == 1 && rowDiff == forward) {
-        return Render::board[row][col] != nullptr;
+        // Standard capture
+        if (Render::board[row][col] != nullptr) {
+            return true;
+        }
+        //en passant logic
+        if (col == Render::enPassantCol && row == Render::enPassantRow + forward) {
+            return true;
+        }
     }
 
     return false;
 }
 
-Rook::Rook(color c, int r, int col) : Piece(c, r, col) {}
+
+Rook::Rook(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
+void Rook::afterMove() { hasMoved = true; }
 bool Rook::validmove(int row, int col) {
     if (!Piece::isPathClear(row, col)) {
         return false;
@@ -170,16 +179,27 @@ bool Queen::validmove(int row, int col) {
     return false;
 }
 
+King::King(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
 
-King::King(color c, int r, int col) : Piece(c, r, col) {}
+void King::afterMove() { hasMoved = true; }
+
 bool King::validmove(int row, int col) {
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
-    if (rowDiff > 1 || colDiff > 1) {
-        return false;
-    }
-    return true;
 
+    //castling
+    if (!hasMoved && rowDiff == 0 && colDiff == 2) {
+        int rookCol = (col > position.col) ? 7 : 0;
+        Piece* ptr = Render::board[row][rookCol];
+
+        if (ptr && ptr->getTypeId() == 0 && !ptr->getHasMoved()) {
+            if (isPathClear(row, rookCol == 7 ? 6 : 1))
+                return true;
+        }
+    }
+
+    //normal
+    return rowDiff <= 1 && colDiff <= 1;
 }
 
 // pawn attacking check

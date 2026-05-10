@@ -1,6 +1,7 @@
 #include "render.h"
 #include "check.h"
 #include "pieces.h"
+#include<iostream>
 
 const int width = 1600;
 const int height = 1100;
@@ -11,6 +12,9 @@ int Render::selectedRow = -1;
 int Render::selectedCol = -1;
 Piece* Render::selectedPiece = nullptr;
 bool Render::whiteTurn = true;
+
+int Render::enPassantCol = -1;
+int Render::enPassantRow = -1;
 
 Piece* Render::promotionPiece = nullptr;
 
@@ -100,13 +104,13 @@ void Render::mainGridMouse() {
     Vector2 mouse = GetMousePosition();
     float offsetX = 250.0f;
 
-    if ((mouse.x - offsetX) / cellSize < 0.0){
+    if ((mouse.x - offsetX) / cellSize < 0.0) {
         return;
     }
     int col = (mouse.x - offsetX) / cellSize;
     int row = mouse.y / cellSize;
 
-    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         return;
     }
     if (row < 0 || row >= 8 || col < 0 || col >= 8) {
@@ -139,6 +143,37 @@ void Render::mainGridMouse() {
             return;
         }
 
+        //special moves execution
+
+        //handle en passant capture (pawn captured empty square diagonally)
+        if (selectedPiece->getTypeId() == 5 && col == enPassantCol && row == enPassantRow + (selectedPiece->getColor() == color::white ? -1 : 1)) {
+            delete board[enPassantRow][enPassantCol];
+            board[enPassantRow][enPassantCol] = nullptr;
+        }
+
+        //handle castling (move the rook as well)
+        if (selectedPiece->getTypeId() == 4 && std::abs(col - selectedCol) == 2) {
+            int rookOldCol = (col > selectedCol) ? 7 : 0;
+            int rookNewCol = (col > selectedCol) ? 5 : 3;
+
+            if (board[row][rookOldCol] != nullptr) {
+                board[row][rookNewCol] = board[row][rookOldCol];
+                board[row][rookOldCol] = nullptr;
+                board[row][rookNewCol]->setPosition(row, rookNewCol);
+                board[row][rookNewCol]->afterMove();
+            }
+        }
+
+        //en passant availability for next turn
+        int currentSelectedRow = selectedRow;
+        if (selectedPiece->getTypeId() == 5 && std::abs(row - currentSelectedRow) == 2) {
+            enPassantCol = col;
+            enPassantRow = row;
+        }
+        else {
+            enPassantCol = -1; // Reset if any other move is made
+        }
+
         board[selectedRow][selectedCol] = nullptr;
         //deleting the captured piece
         delete board[row][col];
@@ -148,11 +183,13 @@ void Render::mainGridMouse() {
         //related to removing pawn ability to move two steps after first one and checking promotion
         selectedPiece->afterMove();
 
+        whiteTurn = !whiteTurn;
+
+
         selectedPiece = nullptr;
         selectedRow = -1;
         selectedCol = -1;
 
-        whiteTurn = !whiteTurn;
         check_if_check_king();
     }
 }

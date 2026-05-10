@@ -31,6 +31,8 @@ public:
         return validmove(row, col);
     }
     virtual void afterMove() {}
+    virtual bool getHasMoved() const { return true; }
+
 };
 
 
@@ -48,9 +50,13 @@ public:
 
 class Rook : public Piece {
 public:
+    bool hasMoved;
     Rook(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
+    bool getHasMoved() const override { return hasMoved; }
+
+    void afterMove() override;
 };
 
 class Knight : public Piece {
@@ -79,8 +85,9 @@ public:
 
 class King : public Piece {
 public:
+    bool hasMoved;
     King(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
-
+    void afterMove() override;
 };
