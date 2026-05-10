@@ -1,5 +1,6 @@
 #include "render.h"
 #include "check.h"
+#include "menu.h"
 #include "pieces.h"
 #include <iostream>
 #include <cmath>
@@ -87,26 +88,34 @@ void Render::initBoard() {
 
 
 void Render::window() {
-    InitWindow(width, height, "chess game");
-    font = LoadFontEx("assets/FreeSans.otf", 64, NULL, 0);
+    InitWindow(1600, 1100, "Chess Game");
+    font = LoadFontEx("assets/FreeSans.otf", 32, NULL, 0);
 
     LoadTextures();
+    Menu::LoadAssets();
     initBoard();
 
     while (!WindowShouldClose()) {
-        if (Render::promotionPiece == nullptr) {
-            mainGridMouse();
+        if (Menu::menuActive) {
+            Menu::Update();
+        }
+        else {
+            if (!promotionPiece) mainGridMouse();
         }
 
         BeginDrawing();
-        mainGrid();
-        leftGrid();
-        rightGrid();
-        drawCapture();
-        if (Render::promotionPiece != nullptr) {
-            Render::promotionGrid(Render::promotionPiece);
+        if (Menu::menuActive) {
+            Menu::Draw();
         }
-        drawPopup();
+        else {
+            ClearBackground(RAYWHITE);
+            mainGrid();
+            leftGrid();
+            rightGrid();
+            drawCapture();
+            if (promotionPiece) promotionGrid(promotionPiece);
+            drawPopup();
+        }
         EndDrawing();
     }
     CloseWindow();
@@ -297,13 +306,32 @@ void Render::mainGrid() {
 }
 
 
-void Render::leftGrid() {
-    DrawRectangle(0, 0, 250, height, LIGHTGRAY);
+void drawCatPFP(Texture2D cat, float x, float y) {
+    float size = 200.0f;
+    Rectangle source = { 0, 0, (float)cat.width, (float)cat.height };
+    Rectangle dest = { x, y, size, size };
+
+    DrawTexturePro(cat, source, dest, { 0, 0 }, 0, WHITE);
 }
 
 
+void Render::leftGrid() {
+    DrawRectangle(0, 0, 250, 1100, LIGHTGRAY);
+    DrawText("WHITE", 70, 500, 30, WHITE);
+
+    //Draw the PFP
+    Texture2D chosenCat = Menu::catTextures[Menu::whiteChoice];
+    drawCatPFP(chosenCat, 25, 850);
+    
+}
+
 void Render::rightGrid() {
-    DrawRectangle(width - 250, 0, 250, height, LIGHTGRAY);
+    DrawRectangle(1350, 0, 250, 1100, LIGHTGRAY);
+    DrawText("BLACK", 1420, 500, 30, BLACK);
+
+    //Draw the PFP
+    Texture2D chosenCat = Menu::catTextures[Menu::blackChoice];
+    drawCatPFP(chosenCat, 1375, 50);
 }
 
 
