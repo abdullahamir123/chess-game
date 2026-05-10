@@ -268,7 +268,7 @@ void Render::promotionGrid(Piece* selectedPiece) {
         offsetX, offsetY,
         popupWidth, popupHeight
     };
-    DrawRectangleRounded(popup, 0.5, 10, LIGHGRAY);
+    DrawRectangleRounded(popup, 0.5, 10, LIGHTGRAY);
     DrawTextEx(font, "Choose a piece to promote to", pos, 32, 2, BLACK);
     int textureIndex = (selectedPiece->getColor() == color::white) ? 0 : 6;
     for (int i = 0; i < 4; i++) {

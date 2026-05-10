@@ -110,3 +110,17 @@ bool Check::checking_checkmate(color kingColor) {
     }
     return true;
 }
+
+bool Check::checking_stalemate(color kingColor) {
+    //if king in check, not stalemate
+    if (king_check(kingColor)) 
+        return false;
+    
+    //check if valid move, return true if so
+    if (piece_move_checkmate(kingColor))
+        return false;
+
+    //if no moves or no check then stalemate
+    return true;
+
+}
