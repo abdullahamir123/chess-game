@@ -1,6 +1,7 @@
 #include "check.h"
 #include "render.h"
 
+
 Cord Check::locate_king(color kingColor) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -23,6 +24,7 @@ Cord Check::locate_king(color kingColor) {
     return not_found;
 }
 
+
 bool Check::king_check(color color_king) {
     Cord location_king = locate_king(color_king);
     for (int i = 0; i < 8; i++) {
@@ -43,26 +45,6 @@ bool Check::king_check(color color_king) {
     return false;
 }
 
-bool Check::piece_move_checkmate(color kingColor) {
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            Piece* piece = Render::board[i][j];
-            if (piece == nullptr) continue;
-            if (piece->getColor() != kingColor) continue;
-
-            for (int row = 0; row < 8; row++) {
-                for (int col = 0; col < 8; col++) {
-                    if (!piece->validmove(row, col)) continue;
-                    if (!piece->noFriendlyCapture(row, col)) continue;
-                    if (after_move_no_checkmate(piece, row, col)) {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
 
 bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) {
     Cord position_king = piece->getPosition();
@@ -97,15 +79,32 @@ bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) 
     return safe;
 }
 
-bool Check::checking_stalemate(color kingColor) {
-    if (king_check(kingColor))
-        return false;
 
-    if (piece_move_checkmate(kingColor))
-        return false;
+bool Check::piece_move_checkmate(color kingColor) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Piece* piece = Render::board[i][j];
+            if (piece == nullptr)
+                continue;
+            if (piece->getColor() != kingColor)
+                continue;
 
-    return true;
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    if (!piece->validmove(row, col))
+                        continue;
+                    if (!piece->noFriendlyCapture(row, col))
+                        continue;
+                    if (after_move_no_checkmate(piece, row, col)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
+
 
 bool Check::checking_checkmate(color kingColor) {
     if (!king_check(kingColor)) {
@@ -114,5 +113,17 @@ bool Check::checking_checkmate(color kingColor) {
     if (piece_move_checkmate(kingColor)) {
         return false;
     }
+    return true;
+}
+
+
+
+bool Check::checking_stalemate(color kingColor) {
+    if (king_check(kingColor))
+        return false;
+
+    if (piece_move_checkmate(kingColor))
+        return false;
+
     return true;
 }

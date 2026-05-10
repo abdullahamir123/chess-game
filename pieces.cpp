@@ -4,22 +4,17 @@
 #include <iostream>
 #include <cmath>
 
+
+//BASE CLASS
 Piece::Piece(color c, int row, int col) : pieceColor(c), position{ row, col } {}
 
 color Piece::getColor() const { return pieceColor; }
+
 Cord Piece::getPosition() const { return position; }
 
 void Piece::setPosition(int row, int col) {
     position.row = row;
     position.col = col;
-}
-
-void Pawn::afterMove() {
-    hasMoved = true;
-    if ((pieceColor == color::white && position.row == 0) ||
-        (pieceColor == color::black && position.row == 7)) {
-        Render::promotionPiece = this;
-    }
 }
 
 bool Piece::noFriendlyCapture(int row, int col) const {
@@ -31,13 +26,6 @@ bool Piece::noFriendlyCapture(int row, int col) const {
     }
     return true;
 }
-
-int Rook::getTypeId() const { return 0; }
-int Knight::getTypeId() const { return 1; }
-int Bishop::getTypeId() const { return 2; }
-int Queen::getTypeId() const { return 3; }
-int King::getTypeId() const { return 4; }
-int Pawn::getTypeId() const { return 5; }
 
 bool Piece::isPathClear(int row, int col) const {
     int rowDiff = row - position.row;
@@ -59,21 +47,21 @@ bool Piece::isPathClear(int row, int col) const {
     return true;
 }
 
-bool Pawn::isPawnPathClear(int row) {
-    int forward = (pieceColor == color::white) ? -1 : 1;
 
-    if (Render::board[position.row + forward][position.col] != nullptr) {
-        return false;
-    }
-    if (std::abs(row - position.row) == 2) {
-        if (Render::board[row][position.col] != nullptr) {
-            return false;
-        }
-    }
-    return true;
-}
 
+//TYPE ID
+int Rook::getTypeId() const { return 0; }
+int Knight::getTypeId() const { return 1; }
+int Bishop::getTypeId() const { return 2; }
+int Queen::getTypeId() const { return 3; }
+int King::getTypeId() const { return 4; }
+int Pawn::getTypeId() const { return 5; }
+
+
+
+//PAWN
 Pawn::Pawn(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
+
 bool Pawn::validmove(int row, int col) {
     int forward = (pieceColor == color::white) ? -1 : 1;
     int rowDiff = row - position.row;
@@ -99,46 +87,43 @@ bool Pawn::validmove(int row, int col) {
     return false;
 }
 
-Rook::Rook(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
-void Rook::afterMove() { hasMoved = true; }
-bool Rook::validmove(int row, int col) {
-    if (!Piece::isPathClear(row, col)) return false;
-    int rowDiff = std::abs(row - position.row);
-    int colDiff = std::abs(col - position.col);
-
-    return (rowDiff == 0 && col != position.col) || (colDiff == 0 && row != position.row);
-}
-
-Knight::Knight(color c, int r, int col) : Piece(c, r, col) {}
-bool Knight::validmove(int row, int col) {
-    int rowDiff = std::abs(row - position.row);
-    int colDiff = std::abs(col - position.col);
-
-    return (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2);
-}
-
-Bishop::Bishop(color c, int r, int col) : Piece(c, r, col) {}
-bool Bishop::validmove(int row, int col) {
-    if (!Piece::isPathClear(row, col)) return false;
-    int rowDiff = std::abs(row - position.row);
-    int colDiff = std::abs(col - position.col);
-    return rowDiff == colDiff;
-}
-
-Queen::Queen(color c, int r, int col) : Piece(c, r, col) {}
-bool Queen::validmove(int row, int col) {
-    if (!Piece::isPathClear(row, col)) return false;
-    int rowDiff = std::abs(row - position.row);
-    int colDiff = std::abs(col - position.col);
-
-    if (rowDiff == colDiff) return true;
-    if (rowDiff == 0 && col != position.col) return true;
-    if (colDiff == 0 && row != position.row) return true;
+bool Pawn::canAttack(int row, int col) {
+    int forward = (pieceColor == color::white) ? -1 : 1;
+    if (row == position.row + forward) {
+        if (col == position.col + 1 || col == position.col - 1) {
+            return true;
+        }
+    }
     return false;
 }
 
+void Pawn::afterMove() {
+    hasMoved = true;
+    if ((pieceColor == color::white && position.row == 0) ||
+        (pieceColor == color::black && position.row == 7)) {
+        Render::promotionPiece = this;
+    }
+}
+
+bool Pawn::isPawnPathClear(int row) {
+    int forward = (pieceColor == color::white) ? -1 : 1;
+
+    if (Render::board[position.row + forward][position.col] != nullptr) {
+        return false;
+    }
+    if (std::abs(row - position.row) == 2) {
+        if (Render::board[row][position.col] != nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+
+//KING
 King::King(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
-void King::afterMove() { hasMoved = true; }
+
 bool King::validmove(int row, int col) {
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
@@ -168,18 +153,66 @@ bool King::validmove(int row, int col) {
     return rowDiff <= 1 && colDiff <= 1;
 }
 
+void King::afterMove() { hasMoved = true; }
+
 bool King::canAttack(int row, int col) {
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
     return rowDiff <= 1 && colDiff <= 1;
 }
 
-bool Pawn::canAttack(int row, int col) {
-    int forward = (pieceColor == color::white) ? -1 : 1;
-    if (row == position.row + forward) {
-        if (col == position.col + 1 || col == position.col - 1) {
-            return true;
-        }
-    }
+
+
+//ROOK
+Rook::Rook(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
+
+bool Rook::validmove(int row, int col) {
+    if (!Piece::isPathClear(row, col)) return false;
+    int rowDiff = std::abs(row - position.row);
+    int colDiff = std::abs(col - position.col);
+
+    return (rowDiff == 0 && col != position.col) || (colDiff == 0 && row != position.row);
+}
+
+void Rook::afterMove() { hasMoved = true; }
+
+
+
+//KNIGHT
+Knight::Knight(color c, int r, int col) : Piece(c, r, col) {}
+
+bool Knight::validmove(int row, int col) {
+    int rowDiff = std::abs(row - position.row);
+    int colDiff = std::abs(col - position.col);
+
+    return (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2);
+}
+
+
+
+
+//BISHOP
+Bishop::Bishop(color c, int r, int col) : Piece(c, r, col) {}
+
+bool Bishop::validmove(int row, int col) {
+    if (!Piece::isPathClear(row, col)) return false;
+    int rowDiff = std::abs(row - position.row);
+    int colDiff = std::abs(col - position.col);
+    return rowDiff == colDiff;
+}
+
+
+
+//QUEEN
+Queen::Queen(color c, int r, int col) : Piece(c, r, col) {}
+
+bool Queen::validmove(int row, int col) {
+    if (!Piece::isPathClear(row, col)) return false;
+    int rowDiff = std::abs(row - position.row);
+    int colDiff = std::abs(col - position.col);
+
+    if (rowDiff == colDiff) return true;
+    if (rowDiff == 0 && col != position.col) return true;
+    if (colDiff == 0 && row != position.row) return true;
     return false;
 }
