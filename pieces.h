@@ -30,6 +30,7 @@ public:
     virtual bool canAttack(int row, int col) {
         return validmove(row, col);
     }
+    virtual void afterMove() {}
 };
 
 
@@ -42,6 +43,7 @@ public:
     bool isPawnPathClear(int row);
     bool canAttack(int row, int col) override;
 
+    void afterMove() override;
 };
 
 class Rook : public Piece {

@@ -17,14 +17,14 @@ Cord Piece::getPosition() const{
 void Piece::setPosition(int row, int col) {
     position.row = row;
     position.col = col;
-    if (!(getTypeId() == 5)) {
-        return;
-    }
-    if (getColor() == color::white && row == 0) {
-        Render::promotionPiece = Render::selectedPiece;
-    }
-    else if (getColor() == color::black && row == 7) {
-        Render::promotionPiece = Render::selectedPiece;
+
+}
+
+void Pawn::afterMove() {
+    hasMoved = true;
+    if ((pieceColor == color::white && position.row == 0) ||
+        (pieceColor == color::black && position.row == 7)) {
+        Render::promotionPiece = this;
     }
 }
 
@@ -48,68 +48,24 @@ int King::getTypeId() const { return 4; }
 int Pawn::getTypeId() const { return 5; }
 
 
-bool Piece::isPathClear(int rowDiff, int colDiff) const {
-    if (!rowDiff) { //check horizontal path
-        if (colDiff < 0) {
-            for (int i = 1; i < std::abs(colDiff); i++) {
-                if (Render::board[position.row][position.col - i] != nullptr) {
-                    return false;
-                }
-            }
+bool Piece::isPathClear(int row, int col) const {
+    int rowDiff = row - position.row;
+    int colDiff = col - position.col;
+
+    int rowStep = (rowDiff == 0) ? 0 : (rowDiff > 0 ? 1 : -1);
+    int colStep = (colDiff == 0) ? 0 : (colDiff > 0 ? 1 : -1);
+
+    // start checking from the square immediately following the piece position
+    int checkRow = position.row + rowStep;
+    int checkCol = position.col + colStep;
+
+    //going form starting to target by 1 cell a time
+    while (checkRow != row || checkCol != col) {
+        if (Render::board[checkRow][checkCol] != nullptr) {
+            return false;
         }
-        else {
-            for (int i = 1; i < colDiff; i++) {
-                if (Render::board[position.row][position.col + i] != nullptr) {
-                    return false;
-                }
-            }
-        }
-    }
-    else if (!colDiff) { //check vertical path
-        if (rowDiff < 0) {
-            for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row - i][position.col] != nullptr) {
-                    return false;
-                }
-            }
-        }
-        else {
-            for (int i = 1; i < rowDiff; i++) {
-                if (Render::board[position.row + i][position.col] != nullptr) {
-                    return false;
-                }
-            }
-        }
-    }
-    else { //check diagonal paths
-        if (rowDiff < 0 && colDiff < 0) {
-            for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row - i][position.col - i] != nullptr) {
-                    return false;
-                }
-            }
-        }
-        else if (rowDiff < 0 && colDiff > 0) {
-            for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row - i][position.col + i] != nullptr) {
-                    return false;
-                }
-            }
-        }
-        else if (rowDiff > 0 && colDiff > 0) {
-            for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row + i][position.col + i] != nullptr) {
-                    return false;
-                }
-            }
-        }
-        else if(rowDiff > 0 && colDiff < 0) {
-            for (int i = 1; i < std::abs(rowDiff); i++) {
-                if (Render::board[position.row + i][position.col - i] != nullptr) {
-                    return false;
-                }
-            }
-        }
+        checkRow += rowStep;
+        checkCol += colStep;
     }
     return true;
 }
@@ -157,7 +113,7 @@ bool Pawn::validmove(int row, int col) {
 
 Rook::Rook(color c, int r, int col) : Piece(c, r, col) {}
 bool Rook::validmove(int row, int col) {
-    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+    if (!Piece::isPathClear(row, col)) {
         return false;
     }
     int rowDiff = std::abs(row - position.row);
@@ -184,7 +140,7 @@ bool Knight::validmove(int row, int col) {
 
 Bishop::Bishop(color c, int r, int col) : Piece(c, r, col) {}
 bool Bishop::validmove(int row, int col) {
-    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+    if (!Piece::isPathClear(row, col)) {
         return false;
     }
     int rowDiff = std::abs(row - position.row);
@@ -198,7 +154,7 @@ bool Bishop::validmove(int row, int col) {
 
 Queen::Queen(color c, int r, int col) : Piece(c, r, col) {}
 bool Queen::validmove(int row, int col) {
-    if (!Piece::isPathClear(row - position.row, col - position.col)) {
+    if (!Piece::isPathClear(row, col)) {
         return false;
     }
     int rowDiff = std::abs(row - position.row);
