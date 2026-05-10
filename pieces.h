@@ -2,10 +2,12 @@
 
 enum class color { white, black };
 
+
 struct Cord {
     int row;
     int col;
 };
+
 
 class Piece {
 protected:
@@ -34,6 +36,7 @@ public:
 
 };
 
+
 class Pawn : public Piece {
 public:
     bool hasMoved;
@@ -46,6 +49,7 @@ public:
     void afterMove() override;
 };
 
+
 class Rook : public Piece {
 public:
     bool hasMoved;
@@ -57,12 +61,14 @@ public:
     void afterMove() override;
 };
 
+
 class Knight : public Piece {
 public:
     Knight(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
 };
+
 
 class Bishop : public Piece {
 public:
@@ -71,12 +77,14 @@ public:
     bool validmove(int row, int col) override;
 };
 
+
 class Queen : public Piece {
 public:
     Queen(color c, int row, int col);
     int getTypeId() const override;
     bool validmove(int row, int col) override;
 };
+
 
 class King : public Piece {
 public:
