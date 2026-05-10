@@ -2,8 +2,6 @@
 #include"render.h"
 #include<iostream>
 
-
-
 Piece::Piece(color c, int row, int col) : pieceColor(c), position{ row, col } {}
 
 color Piece::getColor() const{
