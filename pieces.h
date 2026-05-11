@@ -7,8 +7,6 @@ struct Cord {
     int row;
     int col;
 };
-
-
 class Piece {
 protected:
     color pieceColor;

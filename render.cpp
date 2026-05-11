@@ -61,6 +61,7 @@ void Render::LoadTextures() {
 }
 
 
+//initialize specific indices of the board[][] as piece type pointers remaining will stay nullptr
 void Render::initBoard() {
     for (int i = 0; i < 8; i++) {
         board[1][i] = new Pawn(color::black, 1, i);
@@ -276,6 +277,7 @@ void Render::updateState() {
 }
 
 
+//creates a main grid where each rectangle is seperately drawn keeping their width and height same(cellsize)
 void Render::mainGrid() {
     float offsetX = 250.0f;
     for (int i = 0; i < 8; i++) {
