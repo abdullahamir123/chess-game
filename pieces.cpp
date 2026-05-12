@@ -19,6 +19,7 @@ void Piece::setPosition(int row, int col) {
 
 bool Piece::noFriendlyCapture(int row, int col) const {
     if (Render::board[row][col] != nullptr) {
+        //friendly if color is same
         if (this->getColor() == Render::board[row][col]->getColor()) {
             return false;
         }
@@ -31,12 +32,15 @@ bool Piece::isPathClear(int row, int col) const {
     int rowDiff = row - position.row;
     int colDiff = col - position.col;
 
+    //calculates whether the row/col is changing, if so is the change negative or positive
     int rowStep = (rowDiff == 0) ? 0 : (rowDiff > 0 ? 1 : -1);
     int colStep = (colDiff == 0) ? 0 : (colDiff > 0 ? 1 : -1);
 
+    //moves the checking row one step towards target
     int checkRow = position.row + rowStep;
     int checkCol = position.col + colStep;
 
+    //looping through all the cells and checking if any is not null ptr
     while (checkRow != row || checkCol != col) {
         if (Render::board[checkRow][checkCol] != nullptr) {
             return false;
@@ -68,6 +72,7 @@ bool Pawn::validmove(int row, int col) {
     int colDiff = std::abs(col - position.col);
 
     if (colDiff == 0) {
+        //if step is one ahead or two. two only possible if !hasmoved
         bool oneStep = (rowDiff == forward);
         bool twoStep = (!hasMoved && rowDiff == 2 * forward);
 
@@ -98,6 +103,7 @@ bool Pawn::canAttack(int row, int col) {
 }
 
 void Pawn::afterMove() {
+    //makes sure two moves only happens the first time
     hasMoved = true;
     if ((pieceColor == color::white && position.row == 0) ||
         (pieceColor == color::black && position.row == 7)) {
@@ -105,6 +111,7 @@ void Pawn::afterMove() {
     }
 }
 
+//requires a seperate function because it's normal movement does not capture.
 bool Pawn::isPawnPathClear(int row) {
     int forward = (pieceColor == color::white) ? -1 : 1;
 
@@ -132,6 +139,7 @@ bool King::validmove(int row, int col) {
         int rookCol = (col > position.col) ? 7 : 0;
         Piece* ptr = Render::board[row][rookCol];
 
+        //checks the following conditions: ptr isn't null, type is rook, and has not moved
         if (ptr && ptr->getTypeId() == 0 && !ptr->getHasMoved()) {
             if (rookCol == 7) {
                 if (Render::board[row][5] == nullptr && Render::board[row][6] == nullptr) {
@@ -167,7 +175,8 @@ bool King::canAttack(int row, int col) {
 Rook::Rook(color c, int r, int col) : Piece(c, r, col), hasMoved(false) {}
 
 bool Rook::validmove(int row, int col) {
-    if (!Piece::isPathClear(row, col)) return false;
+    if (!Piece::isPathClear(row, col))
+        return false;
     int rowDiff = std::abs(row - position.row);
     int colDiff = std::abs(col - position.col);
 

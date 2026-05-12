@@ -8,6 +8,7 @@ bool Menu::choosingWhite = true;
 bool Menu::menuActive = true;
 
 void Menu::LoadAssets() {
+    //load da cats
     catTextures[0] = LoadTexture("assets/cat1.jpeg");
     catTextures[1] = LoadTexture("assets/cat2.jpg");
     catTextures[2] = LoadTexture("assets/cat3.jpg");
@@ -17,6 +18,8 @@ void Menu::LoadAssets() {
     catTextures[6] = LoadTexture("assets/cat7.jpg");
 }
 
+
+//choosing is done simply by pressing arrow keys. everytime pressed. selection goes +-1/ did +1 and +6 and then mod so it loops.
 void Menu::Update() {
     if (IsKeyPressed(KEY_RIGHT))
         selectionIndex = (selectionIndex + 1) % 7;

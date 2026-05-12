@@ -3,6 +3,8 @@
 #include "pieces.h"
 #include <vector>
 
+//i made the var and funcs var. makes it easier. no need to have an obj since only one game can run at a time.
+
 class Render {
 public:
     //GAME VARIABLES
