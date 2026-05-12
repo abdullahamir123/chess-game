@@ -2,6 +2,7 @@
 #include "render.h"
 
 
+//locates where the king is in da board. gives back cords
 Cord Check::locate_king(color kingColor) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -18,6 +19,7 @@ Cord Check::locate_king(color kingColor) {
             }
         }
     }
+    //just for safety
     Cord not_found;
     not_found.row = -1;
     not_found.col = -1;
@@ -25,6 +27,7 @@ Cord Check::locate_king(color kingColor) {
 }
 
 
+//check if king under attack
 bool Check::king_check(color color_king) {
     Cord location_king = locate_king(color_king);
     for (int i = 0; i < 8; i++) {
@@ -36,7 +39,7 @@ bool Check::king_check(color color_king) {
             if (enemy->getColor() == color_king) {
                 continue;
             }
-
+            //if neither empty or same color we check if it can attack using canattack func from piece.cpp
             if (enemy->canAttack(location_king.row, location_king.col)) {
                 return true;
             }
@@ -53,6 +56,7 @@ bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) 
     bool isEnPassant = false;
     Piece* enPassantPawn = nullptr;
     int epRow = -1, epCol = -1;
+
 
     if (piece->getTypeId() == 5 && capture_piece == nullptr && targetCol != position_king.col) {
         isEnPassant = true;
@@ -80,6 +84,7 @@ bool Check::after_move_no_checkmate(Piece* piece, int targetRow, int targetCol) 
 }
 
 
+//returns true if not checkmate otherwise false
 bool Check::piece_move_checkmate(color kingColor) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -89,6 +94,7 @@ bool Check::piece_move_checkmate(color kingColor) {
             if (piece->getColor() != kingColor)
                 continue;
 
+            //goes through each cell and calls every single func
             for (int row = 0; row < 8; row++) {
                 for (int col = 0; col < 8; col++) {
                     if (!piece->validmove(row, col))
@@ -106,6 +112,7 @@ bool Check::piece_move_checkmate(color kingColor) {
 }
 
 
+//if true game ends as checkmate
 bool Check::checking_checkmate(color kingColor) {
     if (!king_check(kingColor)) {
         return false;
@@ -118,6 +125,7 @@ bool Check::checking_checkmate(color kingColor) {
 
 
 
+//if true game ends as stalemate
 bool Check::checking_stalemate(color kingColor) {
     if (king_check(kingColor))
         return false;

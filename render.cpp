@@ -10,6 +10,7 @@ const int width = 1600;
 const int height = 1100;
 const float cellSize = (width - 500.0f) / 8.0f;
 
+//since no cell selected, they are 0 (out of bound)
 int Render::selectedRow = -1;
 int Render::selectedCol = -1;
 Piece* Render::selectedPiece = nullptr;
@@ -21,6 +22,7 @@ int Render::enPassantRow = -1;
 
 Piece* Render::promotionPiece = nullptr;
 
+//for FreeSans font bcz i don't like raylib's font
 Font font;
 
 std::vector<int> Render::whiteCaptured;
@@ -28,10 +30,12 @@ std::vector<int> Render::blackCaptured;
 
 Texture2D Render::endGameTexture;
 
+//entire board initialized as empty
 Piece* Render::board[8][8] = { nullptr };
 
 Texture2D Render::textures[12];
 
+//no checks, checkmate and stalemate at start
 bool Render::white_check = false;
 bool Render::black_check = false;
 
@@ -42,6 +46,7 @@ bool Render::white_stalemate = false;
 bool Render::black_stalemate = false;
 
 
+//load all textures, note the black variant of the same type is +6 of its white variant
 void Render::LoadTextures() {
     textures[0] = LoadTexture("assets/white-rook.png");
     textures[1] = LoadTexture("assets/white-knight.png");
@@ -61,6 +66,9 @@ void Render::LoadTextures() {
 }
 
 
+//initializing the board. making these ptr not null ptr
+//note use a check each time for nullptr. (empty cells are null).
+//will crash if not done
 void Render::initBoard() {
     for (int i = 0; i < 8; i++) {
         board[1][i] = new Pawn(color::black, 1, i);
@@ -89,12 +97,14 @@ void Render::initBoard() {
 
 void Render::window() {
     InitWindow(1600, 1100, "Chess Game");
+    // loading da font. the last two args are unnecessary for simple importing.
     font = LoadFontEx("assets/FreeSans.otf", 32, NULL, 0);
 
     LoadTextures();
     Menu::LoadAssets();
     initBoard();
 
+    //needed for raylib. run 60 times per second(da main loop). put all functions inside this.
     while (!WindowShouldClose()) {
         if (Menu::menuActive) {
             Menu::Update();
@@ -127,12 +137,15 @@ void Render::mainGridMouse() {
     float offsetX = 250.0f;
 
     // CALCULATE GRID CORDS
-    if ((mouse.x - offsetX) / cellSize < 0.0) return;
+    if ((mouse.x - offsetX) / cellSize < 0.0)
+        return;
     int col = (mouse.x - offsetX) / cellSize;
     int row = mouse.y / cellSize;
 
-    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) return;
-    if (row < 0 || row >= 8 || col < 0 || col >= 8) return;
+    if (!IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        return;
+    if (row < 0 || row >= 8 || col < 0 || col >= 8)
+        return;
 
     //DESELECT PIECE
     if (selectedPiece && selectedRow == row && selectedCol == col) {
@@ -151,7 +164,8 @@ void Render::mainGridMouse() {
         return;
     }
 
-    if (selectedPiece == nullptr) return;
+    if (selectedPiece == nullptr)
+        return;
 
     //MOVE VALIDITY
     if (selectedPiece->validmove(row, col)) {
@@ -164,8 +178,10 @@ void Render::mainGridMouse() {
 }
 
 
+//first checks if enpassant, then check for castle and then normal movee. then gives turn to other cat.
 void Render::executeMove(Piece* piece, int row, int col) {
     //EN PASSANT CAPTURE
+    //adding or subtract 1 bcz need to do move behind where the oponent cat moved.
     if (piece->getTypeId() == 5 && col == enPassantCol && row == enPassantRow + (piece->getColor() == color::white ? -1 : 1)) {
         if (board[enPassantRow][enPassantCol] != nullptr) {
             int capturedId = board[enPassantRow][enPassantCol]->getTypeId();
@@ -180,6 +196,7 @@ void Render::executeMove(Piece* piece, int row, int col) {
 
     //CASTLING
     if (piece->getTypeId() == 4 && std::abs(col - selectedCol) == 2) {
+        //left or right side castle
         int rookOldCol = (col > selectedCol) ? 7 : 0;
         int rookNewCol = (col > selectedCol) ? 5 : 3;
 
@@ -193,6 +210,7 @@ void Render::executeMove(Piece* piece, int row, int col) {
 
     //EN PASSANT AVAILABLE
     int currentSelectedRow = selectedRow;
+    //basically if its a pawn(typeid 5) and it did a 2 move its row col becomes enpassant col
     if (piece->getTypeId() == 5 && std::abs(row - currentSelectedRow) == 2) {
         enPassantCol = col;
         enPassantRow = row;
@@ -212,7 +230,7 @@ void Render::executeMove(Piece* piece, int row, int col) {
         delete board[row][col];
     }
 
-    //DO THE MOVE
+    //DO DA  MOVE
     board[selectedRow][selectedCol] = nullptr;
     board[row][col] = piece;
     piece->setPosition(row, col);
@@ -237,7 +255,7 @@ bool Render::move_making_king_check(Piece* piece, int row, int col) {
     Piece* enPassantPawn = nullptr;
     int epRow = -1, epCol = -1;
 
-    //seperately for en passant
+    //when u enpassant capture, the oponent pawn is removed but our pawn one step behind it. so can cause revealing attack
     if (piece->getTypeId() == 5 && old_piece == nullptr && col != king_position.col) {
         isEnPassant = true;
         epRow = king_position.row;
@@ -286,17 +304,22 @@ void Render::mainGrid() {
             Rectangle cell = { x, y, cellSize, cellSize };
             Color col = ((i + j) % 2) ? BROWN : DARKBROWN;
 
+            //when u select cell be yelow
             if (i == selectedRow && j == selectedCol) {
                 col = YELLOW;
             }
+            //if check make king cell red
             if (board[i][j] && board[i][j]->getTypeId() == 4) {
-                if (board[i][j]->getColor() == color::white && white_check) col = RED;
-                if (board[i][j]->getColor() == color::black && black_check) col = RED;
+                if (board[i][j]->getColor() == color::white && white_check)
+                    col = RED;
+                if (board[i][j]->getColor() == color::black && black_check)
+                    col = RED;
             }
             DrawRectangleRec(cell, col);
 
             Piece* p = board[i][j];
             if (p) {
+                //using the +6 pattern in loading func
                 int base = (p->getColor() == color::white) ? 0 : 6;
                 int texIndex = base + p->getTypeId();
                 DrawTexture(textures[texIndex], x, y, WHITE);
@@ -305,7 +328,7 @@ void Render::mainGrid() {
     }
 }
 
-
+//Draw the PFP
 void drawCatPFP(Texture2D cat, float x, float y) {
     float size = 200.0f;
     Rectangle source = { 0, 0, (float)cat.width, (float)cat.height };
@@ -319,22 +342,21 @@ void Render::leftGrid() {
     DrawRectangle(0, 0, 250, 1100, LIGHTGRAY);
     DrawText("WHITE", 70, 500, 30, WHITE);
 
-    //Draw the PFP
     Texture2D chosenCat = Menu::catTextures[Menu::whiteChoice];
     drawCatPFP(chosenCat, 25, 850);
-    
+
 }
 
 void Render::rightGrid() {
     DrawRectangle(1350, 0, 250, 1100, LIGHTGRAY);
     DrawText("BLACK", 1420, 500, 30, BLACK);
 
-    //Draw the PFP
     Texture2D chosenCat = Menu::catTextures[Menu::blackChoice];
     drawCatPFP(chosenCat, 1375, 50);
 }
 
 
+//makes the popup for da promotion
 void Render::promotionGrid(Piece* selectedPiece) {
     float offsetX = 400;
     float offsetY = 500;
@@ -348,12 +370,14 @@ void Render::promotionGrid(Piece* selectedPiece) {
     DrawTextEx(font, "Choose a piece to promote to", pos, 32, 2, BLACK);
     int textureIndex = (selectedPiece->getColor() == color::white) ? 0 : 6;
     for (int i = 0; i < 4; i++) {
+        //+30 is just style
         DrawTexture(textures[i + textureIndex], offsetX + i * popupCell + 30, offsetY + 30, WHITE);
     }
     promotionMouse(offsetX, offsetY, popupCell);
 }
 
 
+//seperate mouse function for promotion grid. so no conflicts
 void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
     Vector2 mouse = GetMousePosition();
     if (mouse.x < offsetX || mouse.x > 1200 || mouse.y < 500 || mouse.y > 680) {
@@ -389,7 +413,9 @@ void Render::promotionMouse(float offsetX, float OffsetY, float popupCell) {
 }
 
 
+//shows captured piece on da side
 void Render::drawCapture() {
+    //size, and spacing between each piece showed
     float scale = 0.4f;
     float spacingX = 38.0f;
     float spacingY = 46.0f;
@@ -408,9 +434,11 @@ void Render::drawCapture() {
 }
 
 
+//draw game finish popup
 void Render::drawPopup() {
     float W = 640, H = 280;
     bool isStalemate = (white_stalemate || black_stalemate);
+    //only if game finished
     if (!white_checkmate && !black_checkmate && !isStalemate) {
         return;
     }
@@ -421,6 +449,8 @@ void Render::drawPopup() {
     float y = (1100 - H) / 2.0f;
     Rectangle source = { 0, 0, (float)endGameTexture.width, (float)endGameTexture.height };
     Rectangle dest = { x, y, W, H };
+    //texture pro used to properly manage size and zoom
+    //drawing the catto
     DrawTexturePro(endGameTexture, source, dest, { 0, 0 }, 0.0f, WHITE);
     const char* subtext = "";
     Color highlight = BLACK;
